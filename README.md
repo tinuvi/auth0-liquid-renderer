@@ -60,6 +60,14 @@ my_templates/
   - `group` sets the previewer sidebar section (e.g. `Onboarding` · `Acesso à conta` · `Segurança`; anything
     else falls under `Outros`). `subject` is a Liquid string rendered for the email-client chrome.
 
+> **Full documents vs. fragments — what happens to *your* files:** a `.liquid` that is already a
+> complete HTML document (it starts with `<!doctype>` or `<html>`) is rendered **verbatim and
+> unthemed** — what you preview is exactly what you upload. A bare **body fragment** (no
+> `<html>`/`<head>` of its own) is instead wrapped in a [theme](#bundled-identity-emails--themes)
+> for preview, and `?source=1` exports that *fragment + theme*. So keep your own templates as
+> complete documents unless you deliberately want the bundled themes; the bundled sample emails
+> ship as fragments by design (the Universal Login page ships as a full document).
+
 ### Variable resolution (later wins)
 
 1. Built-in Auth0-shaped defaults baked into the image.
@@ -90,6 +98,11 @@ The bundled samples are 10 brand-neutral, monochrome **pt-BR** identity emails (
 carrying real Auth0 Liquid tokens — OTP codes render as per-character cells via a genuine
 `{% assign … | split: "" %}` + `{% for %}` loop, and every type has a crafted inline SVG icon and a
 reskinnable monogram (no external images).
+
+Alongside them, `reset_email_full.liquid` is a deliberate counter-example: a complete, self-contained
+HTML document (table layout, inline styles) rather than a fragment. It demonstrates the other valid
+authoring style — a full document is detected and rendered **as-is, unthemed**, so it needs no theme and
+is uploaded verbatim (as `reset_email`). The themes below apply only to the fragment-authored emails.
 
 Each email is authored as a theme-agnostic **body fragment** (no `<html>`/`<head>` of its own). At render
 time the server wraps it with one of three monochrome **themes** to form a complete document:
