@@ -5,6 +5,8 @@ A small, local preview server for **Auth0 Liquid templates** — both **email te
 `http://localhost:9292/`, and you get a previewer: a collapsible sidebar grouped by kind, device and
 orientation toggles, a live variable editor, and a Prévia ↔ Liquid source switch.
 
+![The previewer: a grouped template sidebar, device / orientation / zoom toggles, a theme switch, and the live Variáveis editor rendering an email in a device frame](docs/preview.png)
+
 It never talks to Auth0 and needs no credentials — it is a preview tool. A file that renders here is meant
 to be uploadable to Auth0 **verbatim** (e.g. via the Terraform `auth0_email_template` /
 `auth0_branding` resources). Full-document templates (the Universal Login page, or your own standalone
