@@ -59,7 +59,11 @@
     /* ---- Main ---- */
     .main{flex:1;display:flex;flex-direction:column;min-width:0}
     .bar{height:56px;flex:0 0 56px;background:var(--panel);border-bottom:1px solid var(--line);
-      display:flex;align-items:center;gap:14px;padding:0 16px}
+      display:flex;align-items:center;gap:12px;padding:0 16px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+    .bar::-webkit-scrollbar{height:0}
+    .bar>*{flex:0 0 auto}
+    .bar .spacer{flex:1 1 auto;min-width:8px}
+    .bar-title{flex:0 1 auto}
     .icon-btn{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;
       display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
     .icon-btn:hover{background:var(--ink-soft);color:var(--ink)}
@@ -78,6 +82,24 @@
     .seg.disabled{opacity:.4;pointer-events:none}
     .seg.icons button{padding:6px 9px}
     .seg-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-right:-6px;align-self:center}
+
+    /* zoom stepper */
+    .seg.zoom button svg{width:15px;height:15px}
+    .seg.zoom .zlbl{min-width:48px;justify-content:center;font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink);padding:6px 6px}
+    .seg.zoom .zlbl:hover{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+    .seg.zoom button:disabled{opacity:.32;cursor:default}
+    .seg.zoom button:disabled:hover{color:var(--ink-2)}
+
+    /* responsive width × height inputs */
+    .rsize{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px 5px}
+    .rsize input{width:52px;border:0;background:#fff;border-radius:6px;padding:5px 7px;font-size:12px;font-weight:600;
+      font-family:var(--mono);color:var(--ink);outline:none;text-align:center;-moz-appearance:textfield}
+    .rsize input::-webkit-outer-spin-button,.rsize input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .rsize input:focus{box-shadow:0 0 0 2px rgba(20,20,30,.12)}
+    .rsize .x{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+    .rsize-swap{width:28px;height:28px;border:0;background:none;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);margin-left:1px}
+    .rsize-swap:hover{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+    .rsize-swap svg{width:15px;height:15px}
 
     /* ---- Variables button + drawer ---- */
     .vars-btn{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:9px;
@@ -124,10 +146,26 @@
     .stage{flex:1;overflow:auto;background:var(--bg);
       background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:22px 22px;
       display:flex;justify-content:safe center;padding:34px 24px 60px}
+    .client-shell{position:relative;align-self:flex-start;flex:0 0 auto;
+      transition:width .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1)}
+    .client-shell.resp{transition:none}
     .client{align-self:flex-start;flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;
       box-shadow:0 1px 2px rgba(20,20,30,.04),0 24px 48px -28px rgba(20,20,30,.28);overflow:hidden;
       display:flex;flex-direction:column;
       transition:width .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1)}
+
+    /* responsive resize handles (DevTools-style) */
+    .rz{position:absolute;z-index:6;touch-action:none}
+    .rz::after{content:'';position:absolute;background:var(--ink-3);border-radius:6px;opacity:.35;transition:opacity .14s,background .14s}
+    .rz:hover::after,body.resizing .rz::after{opacity:.9;background:var(--ink)}
+    .rz-r{top:0;right:-8px;width:16px;height:100%;cursor:ew-resize}
+    .rz-r::after{top:50%;left:5px;transform:translateY(-50%);width:5px;height:46px}
+    .rz-b{left:0;bottom:-8px;height:16px;width:100%;cursor:ns-resize}
+    .rz-b::after{left:50%;top:5px;transform:translateX(-50%);height:5px;width:46px}
+    .rz-c{right:-10px;bottom:-10px;width:22px;height:22px;cursor:nwse-resize}
+    .rz-c::after{right:4px;bottom:4px;width:9px;height:9px;border-radius:3px}
+    body.resizing{cursor:nwse-resize;user-select:none}
+    body.resizing iframe{pointer-events:none}
     .client-bar{height:38px;display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid var(--line-2);background:#fcfcfd}
     .dot{width:10px;height:10px;border-radius:50%;background:#e0e0e6}
     .client-bar .lbl{flex:1;text-align:center;font-size:11px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.02em}
@@ -259,7 +297,11 @@
       sliders: ui('<path d="M4 7h9M19 7h1M4 12h1M11 12h9M4 17h6M16 17h4"/><circle cx="16" cy="7" r="2.3"/><circle cx="8" cy="12" r="2.3"/><circle cx="13" cy="17" r="2.3"/>'),
       close: ui('<path d="M6 6l12 12M18 6 6 18"/>'),
       revert: ui('<path d="M4 9h11a5 5 0 1 1 0 10h-3"/><path d="M7 5 3 9l4 4"/>'),
-      lock: ui('<rect x="5" y="10.5" width="14" height="9" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>', 1.6)
+      lock: ui('<rect x="5" y="10.5" width="14" height="9" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>', 1.6),
+      responsive: ui('<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>'),
+      swap: ui('<path d="M16 3.5h4.5V8"/><path d="M20.5 3.5 14.5 9.5"/><path d="M8 20.5H3.5V16"/><path d="M3.5 20.5 9.5 14.5"/>'),
+      minus: ui('<path d="M5 12h14"/>', 2),
+      plus: ui('<path d="M12 5v14M5 12h14"/>', 2)
     };
     function docIcon() { return ui('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>'); }
 
@@ -269,6 +311,13 @@
       desktop: { portrait: [960, 760], landscape: [960, 760] }
     };
     var DEV_LABEL = { mobile: "Celular", tablet: "Tablet", desktop: "Desktop" };
+    var ZOOM_LEVELS = [0.5, 0.67, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+    function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+    function nearestZoomIndex(z) {
+      var best = 0, bd = Infinity;
+      ZOOM_LEVELS.forEach(function (v, i) { var d = Math.abs(v - z); if (d < bd) { bd = d; best = i; } });
+      return best;
+    }
 
     var VAR_LABELS = {
       "application.name": "Nome do app", "application.logo_uri": "Logo (URI)", "application.id": "ID do app",
@@ -325,6 +374,9 @@
     var panel = false;
     var overrides = {};
     try { overrides = JSON.parse(ls("eml.vars", "{}")) || {}; } catch (e) { overrides = {}; }
+    var respW = clamp(parseInt(ls("eml.respW", "600"), 10) || 600, 240, 2200);
+    var respH = clamp(parseInt(ls("eml.respH", "780"), 10) || 780, 320, 2600);
+    var zoom = parseFloat(ls("eml.zoom", "1")) || 1;
 
     var lastHtml = "", lastSource = "", lastMeta = null, copied = false, previewTimer = null;
 
@@ -351,6 +403,7 @@
       var t = ov.tenant || (FIXVARS[key] && FIXVARS[key].tenant) || "acme";
       return t + ".auth0.com/u/login";
     }
+    function isResp() { return device === "responsive"; }
 
     // ---- nav (sidebar) ----
     function renderNav() {
@@ -400,12 +453,27 @@
         seg("device", [
           { value: "mobile", icon: UI.phone, title: "Celular" },
           { value: "tablet", icon: UI.tablet, title: "Tablet" },
-          { value: "desktop", icon: UI.desktop, title: "Desktop" }
+          { value: "desktop", icon: UI.desktop, title: "Desktop" },
+          { value: "responsive", icon: UI.responsive, title: "Responsivo (redimensionável)" }
         ], device, { icons: true }) +
-        seg("orient", [
-          { value: "portrait", icon: UI.portrait, title: "Retrato" },
-          { value: "landscape", icon: UI.landscape, title: "Paisagem" }
-        ], orient, { icons: true, disabled: device === "desktop" }) +
+        (isResp()
+          ? '<div class="rsize">' +
+            '<input type="number" class="rsize-w" aria-label="Largura" value="' + respW + '">' +
+            '<span class="x">×</span>' +
+            '<input type="number" class="rsize-h" aria-label="Altura" value="' + respH + '">' +
+            '<button class="rsize-swap" data-act="rsize-swap" title="Girar (trocar largura/altura)"><span>' + UI.swap + "</span></button>" +
+            "</div>"
+          : seg("orient", [
+              { value: "portrait", icon: UI.portrait, title: "Retrato" },
+              { value: "landscape", icon: UI.landscape, title: "Paisagem" }
+            ], orient, { icons: true, disabled: device !== "mobile" && device !== "tablet" })) +
+        '<div class="seg zoom">' +
+        '<button data-act="zoom-out" title="Reduzir zoom"' + (zoom <= ZOOM_LEVELS[0] ? " disabled" : "") +
+        "><span>" + UI.minus + "</span></button>" +
+        '<button class="zlbl" data-act="zoom-reset" title="Redefinir zoom (100%)">' + Math.round(zoom * 100) + "%</button>" +
+        '<button data-act="zoom-in" title="Ampliar zoom"' + (zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1] ? " disabled" : "") +
+        "><span>" + UI.plus + "</span></button>" +
+        "</div>" +
         seg("view", [
           { value: "preview", icon: UI.eye, label: "Prévia" },
           { value: "source", icon: UI.code, label: "Liquid" }
@@ -418,11 +486,12 @@
 
     // ---- stage ----
     function dims() {
+      if (device === "responsive") return [respW, respH];
       var ori = device === "desktop" ? "landscape" : orient;
       return DEV_SPECS[device][ori];
     }
     function clientHTML(w, h) {
-      var size = DEV_LABEL[device] + " · " + w + "×" + h;
+      var size = (isResp() ? "Responsivo" : DEV_LABEL[device]) + " · " + w + "×" + h;
       var dots = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
       var bar, meta, iframe;
       if (isPageKind()) {
@@ -443,8 +512,19 @@
           '<span class="meta-time">agora</span></div>';
         iframe = '<iframe id="frame" title="preview" scrolling="no" style="height:600px"></iframe>';
       }
-      return '<div class="client" style="width:' + w + "px;height:" + h + 'px">' + bar + meta +
+      // The client is scaled by `zoom`; the shell reserves the SCALED footprint so the
+      // surrounding scroll area behaves like DevTools. Responsive mode adds drag handles.
+      var clientStyle = "width:" + w + "px;height:" + h + "px;transform:scale(" + zoom + ");transform-origin:top left;" +
+        (isResp() ? "transition:none;" : "");
+      var client = '<div class="client" style="' + clientStyle + '">' + bar + meta +
         '<div class="frame-wrap">' + iframe + "</div></div>";
+      var handles = isResp()
+        ? '<div class="rz rz-r" data-rz="x" title="Arraste para ajustar a largura"></div>' +
+          '<div class="rz rz-b" data-rz="y" title="Arraste para ajustar a altura"></div>' +
+          '<div class="rz rz-c" data-rz="xy" title="Arraste para ajustar largura e altura"></div>'
+        : "";
+      return '<div class="client-shell' + (isResp() ? " resp" : "") + '" style="width:' + (w * zoom) +
+        "px;height:" + (h * zoom) + 'px">' + client + handles + "</div>";
     }
     function sourceHTML() {
       return '<div class="source"><div class="source-bar">' +
@@ -488,13 +568,26 @@
         paintSource();
       }
     }
-    function updateStageSize() {
-      var c = el("stage").querySelector(".client");
-      if (!c) { renderStage(); return; }
-      var d = dims();
-      c.style.width = d[0] + "px"; c.style.height = d[1] + "px";
-      var w = c.querySelector(".client-bar .w");
-      if (w) w.textContent = DEV_LABEL[device] + " · " + d[0] + "×" + d[1];
+    // Resize/zoom the existing preview in place (no iframe reload). Used for orientation,
+    // zoom, and live responsive dragging; full rebuilds (renderStage) only when the chrome
+    // shell itself changes (entering/leaving responsive, switching template/theme/view).
+    function applySize() {
+      var shell = el("stage").querySelector(".client-shell");
+      if (!shell) { renderStage(); return; }
+      var d = dims(), w = d[0], h = d[1];
+      shell.style.width = (w * zoom) + "px";
+      shell.style.height = (h * zoom) + "px";
+      var c = shell.querySelector(".client");
+      if (c) {
+        c.style.width = w + "px"; c.style.height = h + "px";
+        c.style.transform = "scale(" + zoom + ")";
+        c.style.transition = isResp() ? "none" : "";
+      }
+      var lbl = shell.querySelector(".client-bar .w");
+      if (lbl) lbl.textContent = (isResp() ? "Responsivo" : DEV_LABEL[device]) + " · " + w + "×" + h;
+      // keep the toolbar W×H inputs in sync while dragging (don't fight a focused one)
+      var wi = el("bar").querySelector(".rsize-w"); if (wi && document.activeElement !== wi) wi.value = w;
+      var hi = el("bar").querySelector(".rsize-h"); if (hi && document.activeElement !== hi) hi.value = h;
     }
 
     // ---- drawer (variables) ----
@@ -562,8 +655,66 @@
     // ---- state setters ----
     function setKey(k) { if (k === key || !BYNAME[k]) return; key = k; save("eml.key", k); renderNav(); renderToolbar(); renderStage(); renderDrawer(); fetchPreview(); fetchSource(); }
     function setTheme(t) { if (t === theme) return; theme = t; save("eml.theme", t); renderToolbar(); renderStage(); fetchPreview(); fetchSource(); }
-    function setDevice(d) { if (d === device) return; device = d; save("eml.device", d); renderToolbar(); if (view === "preview") updateStageSize(); }
-    function setOrient(o) { if (o === orient || device === "desktop") return; orient = o; save("eml.orient", o); renderToolbar(); if (view === "preview") updateStageSize(); }
+    function setDeviceTo(d) {
+      if (d === device) return;
+      var toggledResp = (d === "responsive") !== (device === "responsive");
+      device = d; save("eml.device", d);
+      renderToolbar();
+      if (view !== "preview") return;
+      // entering/leaving responsive swaps the chrome shell + handles -> full rebuild;
+      // otherwise resize in place so the device-window transition animates.
+      if (toggledResp) renderStage(); else applySize();
+    }
+    function pickDevice(d) {
+      // seed the responsive size from the current device for visual continuity
+      if (d === "responsive" && device !== "responsive") {
+        var cur = dims();
+        respW = clamp(cur[0], 240, 2200); respH = clamp(cur[1], 320, 2600);
+        save("eml.respW", String(respW)); save("eml.respH", String(respH));
+      }
+      setDeviceTo(d);
+    }
+    function setOrient(o) {
+      if (o === orient || (device !== "mobile" && device !== "tablet")) return;
+      orient = o; save("eml.orient", o); renderToolbar();
+      if (view === "preview") applySize();
+    }
+    function setZoom(z) {
+      z = clamp(z, ZOOM_LEVELS[0], ZOOM_LEVELS[ZOOM_LEVELS.length - 1]);
+      if (z === zoom) return;
+      zoom = z; save("eml.zoom", String(zoom)); renderToolbar();
+      if (view === "preview") applySize();
+    }
+    function zoomStep(dir) { setZoom(ZOOM_LEVELS[clamp(nearestZoomIndex(zoom) + dir, 0, ZOOM_LEVELS.length - 1)]); }
+    function swapResp() {
+      var w0 = respW; respW = respH; respH = w0;
+      save("eml.respW", String(respW)); save("eml.respH", String(respH));
+      renderToolbar(); if (view === "preview") applySize();
+    }
+    function setRespFromInput(which, val) {
+      var n = parseInt(val, 10) || 0;
+      if (which === "w") { respW = clamp(n, 240, 2200); save("eml.respW", String(respW)); }
+      else { respH = clamp(n, 320, 2600); save("eml.respH", String(respH)); }
+      if (view === "preview") applySize();
+    }
+    function beginResize(axis, ev) {
+      ev.preventDefault();
+      var startX = ev.clientX, startY = ev.clientY, startW = respW, startH = respH, z = zoom;
+      function move(e) {
+        if (axis.indexOf("x") > -1) respW = clamp(Math.round(startW + (e.clientX - startX) / z), 240, 2200);
+        if (axis.indexOf("y") > -1) respH = clamp(Math.round(startH + (e.clientY - startY) / z), 320, 2600);
+        applySize();
+      }
+      function up() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        document.body.classList.remove("resizing");
+        save("eml.respW", String(respW)); save("eml.respH", String(respH));
+      }
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      document.body.classList.add("resizing");
+    }
     function setView(v) { if (v === view) return; view = v; save("eml.view", v); renderToolbar(); renderStage(); if (v === "source" && !lastSource) fetchSource(); }
     function toggleCollapse(force) { collapsed = (force === undefined) ? !collapsed : force; save("eml.collapsed", collapsed ? "1" : "0"); el("app").classList.toggle("collapsed", collapsed); }
     function togglePanel() { panel = !panel; renderToolbar(); renderDrawer(); }
@@ -588,7 +739,7 @@
       if (t.hasAttribute("data-seg")) {
         var g = t.getAttribute("data-seg"), v = t.getAttribute("data-val");
         if (g === "theme") return setTheme(v);
-        if (g === "device") return setDevice(v);
+        if (g === "device") return pickDevice(v);
         if (g === "orient") return setOrient(v);
         if (g === "view") return setView(v);
         return;
@@ -601,10 +752,20 @@
       if (act === "close-drawer") { panel = false; renderToolbar(); renderDrawer(); return; }
       if (act === "reset-vars") return resetVars();
       if (act === "copy") return doCopy();
+      if (act === "zoom-out") return zoomStep(-1);
+      if (act === "zoom-in") return zoomStep(1);
+      if (act === "zoom-reset") return setZoom(1);
+      if (act === "rsize-swap") return swapResp();
     });
     el("float-open").setAttribute("data-act", "float-open");
+    el("app").addEventListener("pointerdown", function (e) {
+      var hz = e.target.closest("[data-rz]");
+      if (hz) beginResize(hz.getAttribute("data-rz"), e);
+    });
     el("app").addEventListener("input", function (e) {
       if (e.target.id === "search") { query = e.target.value; renderNav(); return; }
+      if (e.target.classList.contains("rsize-w")) { setRespFromInput("w", e.target.value); return; }
+      if (e.target.classList.contains("rsize-h")) { setRespFromInput("h", e.target.value); return; }
       if (e.target.classList.contains("field-i")) {
         var path = e.target.getAttribute("data-path");
         setVar(path, e.target.value);

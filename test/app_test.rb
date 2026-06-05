@@ -28,6 +28,14 @@ class AppTest < Minitest::Test
     assert_includes res.body, "welcome_email"  # a template name
   end
 
+  def test_index_ships_responsive_device_and_zoom_controls
+    res = @request.get("/")
+    assert_equal 200, res.status
+    assert_includes res.body, "Responsivo (redimensionável)" # the 4th device option
+    assert_includes res.body, "rsize-swap"                   # rotate (swap W×H) button
+    assert_includes res.body, "zoom-reset"                   # zoom stepper
+  end
+
   def test_render_returns_the_composed_email_html
     res = @request.get("/render/welcome_email")
     assert_equal 200, res.status
