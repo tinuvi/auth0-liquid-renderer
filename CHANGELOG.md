@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.liquid` stays uploadable to Auth0 verbatim; injected head/widget HTML is a visual approximation,
   with the ULP CSS version configurable via `AUTH0_ULP_CDN_VERSION`.
 - HTTP routes: index (`GET /`), `GET`/`POST /render/<name>`, and `?_raw=1` plain-text output.
+- `ALLOWED_HOSTS` env var (Django-style, comma-separated; `*` for any) to permit previewing over a
+  LAN address or a tunnel without hitting Sinatra's `403 Host not permitted`.
 - Bundled brand-neutral `examples/` set (11 templates) so the image runs standalone.
 - Docker Compose dev workflow (webserver, tests, lint-formatter), Minitest suite, RuboCop config,
   and a multi-arch publish workflow for `tinuvi/auth0-liquid-renderer`.

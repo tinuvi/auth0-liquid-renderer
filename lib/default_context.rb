@@ -5,7 +5,7 @@
 # lives in the consumer repo. Keys are strings because that is what Liquid resolves
 # against (fixtures come from JSON and query params, both string-keyed too).
 #
-# This is the lowest layer of the merge order (HANDOFF §3.3):
+# This is the lowest layer of the merge order:
 #   defaults < _fixtures/<name>.json < per-request overrides.
 module DefaultContext
   module_function

@@ -7,7 +7,7 @@ require_relative "auth0_ulp"
 # PURE rendering core: (template_name, overrides) -> rendered String. No HTTP lives
 # here (routing is in app.rb), so this is trivially unit-testable.
 #
-# Merge order, later wins (HANDOFF §3.3): built-in defaults < fixture vars < overrides.
+# Merge order, later wins: built-in defaults < fixture vars < overrides.
 # A scalar override (query-string param) replaces a top-level key; a nested override
 # (POSTed JSON) deep-merges. Both fall out of deep_merge naturally.
 #
