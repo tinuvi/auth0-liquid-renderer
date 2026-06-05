@@ -6,27 +6,74 @@
 # `{%- auth0:widget -%}` (and the non-trimmed `{% auth0:head %}` / `{% auth0:widget %}`
 # forms) in the body. A Liquid tag name cannot contain ":", so these are deliberately
 # NOT implemented as a registered Liquid tag (that would force a different syntax and
-# break verbatim upload to Auth0). Instead:
+# break verbatim upload to Auth0). Instead we string-substitute the tokens for
+# representative head + login-widget HTML BEFORE Liquid parses the source.
 #
-#   1. swap each token for a unique sentinel BEFORE Liquid parses the source,
-#   2. let Liquid render the rest of the template,
-#   3. swap the sentinels for representative head + login-widget HTML AFTER render.
+# Substituting on an in-memory copy keeps the .liquid file uploadable to Auth0
+# byte-for-byte. The injected widget itself carries Liquid (`{{ application.name }}`,
+# an `{% if organization.display_name %}`), so substitution happens BEFORE render so
+# those resolve in the same pass — the previewer mirrors `substituteAuth0` from the
+# Claude Design prototype. CSS in the injected/page styles uses single `{`/`}`, which
+# Liquid ignores (only `{{` / `{%` trigger it).
 #
-# Substituting before parse keeps the .liquid file uploadable to Auth0 byte-for-byte
-# and stops Liquid from trying to re-process the injected HTML.
-#
-# The injected HTML is a STATIC VISUAL APPROXIMATION for layout preview only — it will
-# not match Auth0 pixel-for-pixel and drifts across Auth0 UI versions. The pinned ULP
-# CSS version is configurable via AUTH0_ULP_CDN_VERSION.
+# The injected HTML is a STATIC VISUAL APPROXIMATION for layout preview only — a clean
+# monochrome login widget that fits the bundled split-screen page. It will not match
+# Auth0's real, tenant-specific widget pixel-for-pixel.
 module Auth0Ulp
   HEAD_TOKEN   = /\{%-?\s*auth0:head\s*-?%\}/
   WIDGET_TOKEN = /\{%-?\s*auth0:widget\s*-?%\}/
 
-  HEAD_SENTINEL   = "@@AUTH0_HEAD_SENTINEL@@"
-  WIDGET_SENTINEL = "@@AUTH0_WIDGET_SENTINEL@@"
+  # Reskinnable monogram, matching the email design system (driven by currentColor).
+  MONO = '<svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>'
 
-  # Matches the class names baked into the static widget approximation below.
-  DEFAULT_CDN_VERSION = "1.59.25"
+  ICON_KEY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="3.3"/><path d="m10.3 12.7 7-7M14.8 8.2l2.2 2.2M16.6 6.4l2 2"/></svg>'
+  ICON_MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="M3.5 7.2 12 13l8.5-5.8"/></svg>'
+
+  # What `{%- auth0:head -%}` injects in preview: the widget's stylesheet (Auth0
+  # serves the real one at runtime; this is a representative monochrome approximation).
+  WIDGET_CSS = <<~CSS
+    .w-card{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif}
+    .w-logo{width:46px;height:46px;margin:0 auto 22px;color:#15151a}.w-logo svg{width:46px;height:46px}
+    .w-title{font-size:23px;font-weight:700;letter-spacing:-.02em;text-align:center;color:#15151a;margin:0 0 7px}
+    .w-sub{font-size:14px;color:#6f6f78;text-align:center;margin:0 0 26px}
+    .w-label{font-size:12.5px;font-weight:600;color:#3b3b42;margin:0 0 6px;display:block}
+    .w-input{width:100%;border:1px solid #d4d4da;border-radius:9px;padding:12px 13px;font-size:14px;color:#15151a;background:#fff;margin-bottom:15px;font-family:inherit}
+    .w-input::placeholder{color:#a6a6ae}
+    .w-row{display:flex;justify-content:flex-end;margin:-7px 0 18px}
+    .w-link{font-size:12.5px;color:#15151a;text-decoration:none;font-weight:600}
+    .w-btn{width:100%;border:0;background:#15151a;color:#fff;border-radius:9px;padding:13px;font-size:15px;font-weight:600;cursor:pointer}
+    .w-div{display:flex;align-items:center;gap:12px;margin:22px 0;color:#a6a6ae;font-size:12px}
+    .w-div::before,.w-div::after{content:"";flex:1;height:1px;background:#e7e7ec}
+    .w-socials{display:flex;flex-direction:column;gap:10px}
+    .w-soc{display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #d4d4da;border-radius:9px;padding:11px;font-size:14px;font-weight:600;color:#3b3b42;background:#fff;cursor:pointer;text-decoration:none}
+    .w-soc svg{width:18px;height:18px;color:#56565e}
+    .w-signup{text-align:center;font-size:13px;color:#6f6f78;margin-top:24px}
+    .w-signup a{color:#15151a;font-weight:600;text-decoration:none}
+  CSS
+
+  HEAD_HTML = %(<style id="auth0-head-approx">#{WIDGET_CSS}</style>).freeze
+
+  # What `{%- auth0:widget -%}` injects in preview. Carries Liquid (resolved in the
+  # same render pass) so the subtitle reflects the org/app name.
+  WIDGET_HTML = <<~HTML.freeze
+    <div class="w-card">
+    <div class="w-logo">#{MONO}</div>
+    <h1 class="w-title">Bem-vindo de volta</h1>
+    <p class="w-sub">Entre na sua conta {% if organization.display_name %}{{ organization.display_name }}{% else %}{{ application.name }}{% endif %}</p>
+    <label class="w-label">E-mail</label>
+    <input class="w-input" type="email" placeholder="voce@empresa.com">
+    <label class="w-label">Senha</label>
+    <input class="w-input" type="password" placeholder="••••••••">
+    <div class="w-row"><a class="w-link" href="#">Esqueceu a senha?</a></div>
+    <button class="w-btn">Continuar</button>
+    <div class="w-div">ou</div>
+    <div class="w-socials">
+    <a class="w-soc" href="#">#{ICON_KEY} Entrar com SSO corporativo</a>
+    <a class="w-soc" href="#">#{ICON_MAIL} Entrar com link mágico</a>
+    </div>
+    <p class="w-signup">Não tem uma conta? <a href="#">Cadastre-se</a></p>
+    </div>
+  HTML
 
   module_function
 
@@ -35,77 +82,9 @@ module Auth0Ulp
     HEAD_TOKEN.match?(source) || WIDGET_TOKEN.match?(source)
   end
 
-  # Step 1: tokens -> sentinels (run on the raw source, before Liquid).
-  def to_sentinels(source)
-    source.gsub(HEAD_TOKEN, HEAD_SENTINEL).gsub(WIDGET_TOKEN, WIDGET_SENTINEL)
+  # tokens -> approximation HTML, on the raw source, BEFORE Liquid parses it. Block
+  # form of gsub so the injected HTML is treated literally (no backreference interpolation).
+  def substitute(source)
+    source.gsub(HEAD_TOKEN) { HEAD_HTML }.gsub(WIDGET_TOKEN) { WIDGET_HTML }
   end
-
-  # Step 3: sentinels -> HTML (run on Liquid's output). Block form of gsub so the
-  # injected HTML is treated literally (no \0/\1 backreference interpretation).
-  def from_sentinels(rendered, cdn_version: DEFAULT_CDN_VERSION)
-    head = head_html(cdn_version)
-    rendered.gsub(HEAD_SENTINEL) { head }.gsub(WIDGET_SENTINEL) { WIDGET_HTML }
-  end
-
-  def head_html(cdn_version = DEFAULT_CDN_VERSION)
-    <<~HTML.freeze
-      <link rel="stylesheet" href="https://cdn.auth0.com/ulp/react-components/#{cdn_version}/css/main.cdn.min.css">
-      <style id="custom-styles-container">
-        body { font-family: ulp-font, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        :root { --primary-color: #635dff; --page-background-color: #f5f6fc; }
-        .no-js { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
-      </style>
-    HTML
-  end
-
-  # Representative ULP login widget. Static approximation, brand-neutral copy.
-  WIDGET_HTML = <<~HTML
-    <main class="_widget login">
-      <section class="_prompt-box-outer c082bfae4 ca9a51135">
-        <div class="ca7765aa4 cc0f204d0">
-          <div class="ce37485e0">
-            <header class="c88ace156 cbccf638c">
-              <div title="" id="custom-prompt-logo" style="background-color:transparent!important;background-position:50%!important;background-repeat:no-repeat!important;background-size:contain!important;height:60px!important;margin:auto!important;padding:0!important;position:static!important;width:auto!important"></div>
-              <img class="c804bd434 ca84a5be8" id="prompt-logo-center" src="https://cdn.auth0.com/styleguide/components/1.0.8/media/logos/img/badge.png" alt="">
-              <h1 class="c4faf1005 ce61d44fd">Welcome</h1>
-              <div class="c87ba88d2 cf51804e0">
-                <p class="c312fad3e cff44daea">Log in to continue.</p>
-              </div>
-            </header>
-            <div class="c435f65a3 c5402e124">
-              <form method="post" class="cbc9e259c cc7ea13ef">
-                <div class="c3e5f2903 c421eb102">
-                  <div class="c35e94f61">
-                    <div class="_input-wrapper input-wrapper">
-                      <div class="c290d0a77 c6502a50e c6ee2841c cc16b291d ce502c880 text">
-                        <label class="c262a03d2 c44052fda ce8710345 no-js" for="username">Email address</label>
-                        <input class="c44d26365 c96d13227 focus input" inputmode="email" name="username" id="username" type="text" value="" required="" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus="">
-                      </div>
-                    </div>
-                    <div class="_input-wrapper input-wrapper">
-                      <div class="c3ffd83c9 c6502a50e c6ee2841c ce502c880 password">
-                        <label class="c262a03d2 c44052fda cc486081b no-js" for="password">Password</label>
-                        <input class="c1cea3c8c c96d13227 input" name="password" id="password" type="password" required="" autocomplete="current-password" autocapitalize="none" spellcheck="false">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p class="c70f3cc15 c9c35fad0">
-                  <a class="c57d45e67 c7d975faf ce3b88cb1" href="#">Forgot password?</a>
-                </p>
-                <div class="c83f0a9b3">
-                  <button type="submit" name="action" value="default" class="c14aa4d90 c1eb66faa c75cd95bc c7b79bfac ccf4184c6">Continue</button>
-                </div>
-              </form>
-              <div class="_alternate-action ulp-alternate-action">
-                <p class="c0bc001fe c312fad3e cff44daea">Don't have an account?
-                  <a class="c7d975faf ce3b88cb1" href="#">Sign up</a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  HTML
 end

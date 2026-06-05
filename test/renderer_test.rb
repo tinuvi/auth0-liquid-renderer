@@ -24,7 +24,7 @@ class RendererTest < Minitest::Test
     "stolen_credentials" => ["jane.doe@example.com", "BREACH-654"],
     "mfa_oob_code" => ["jane.doe@example.com", "Código de acesso"],
     "user_invitation" => ["newuser@example.com", "Alex Carter", "Acme Engenharia", "INVITE-987"],
-    "universal_login" => ["Sign in to Acme", "_widget login", "react-components"]
+    "universal_login" => ["Acme", "Acesse sua conta com segurança", "Bem-vindo de volta", "Continuar"]
   }.freeze
 
   def setup
@@ -78,7 +78,7 @@ class RendererTest < Minitest::Test
     output = @renderer.render("universal_login", theme: "structured")
     refute_includes output, "eml-outer"   # no email-fragment markup
     refute_includes output, "--ink-900"   # no email-theme stylesheet injected
-    assert_includes output, "_widget login" # the ULP widget still renders
+    assert_includes output, "w-card"      # the ULP widget still renders
   end
 
   def test_otp_codes_render_as_individual_character_cells

@@ -132,6 +132,8 @@
     .dot{width:10px;height:10px;border-radius:50%;background:#e0e0e6}
     .client-bar .lbl{flex:1;text-align:center;font-size:11px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.02em}
     .client-bar .w{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+    .client-bar.browser .addr{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;max-width:340px;margin:0 auto;background:#fff;border:1px solid var(--line-2);border-radius:7px;padding:4px 12px;font-size:11.5px;color:var(--ink-2);font-family:var(--mono)}
+    .client-bar.browser .addr svg{width:12px;height:12px;color:var(--ink-3)}
     .client-meta{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line-2)}
     .avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:var(--ink);color:#fff;
       display:flex;align-items:center;justify-content:center}
@@ -230,7 +232,8 @@
       mfa_oob_code: ic(SHIELD + '<circle cx="9" cy="11.7" r=".75" fill="currentColor" stroke="none"/><circle cx="12" cy="11.7" r=".75" fill="currentColor" stroke="none"/><circle cx="15" cy="11.7" r=".75" fill="currentColor" stroke="none"/>'),
       enrollment_email: ic(SHIELD + '<path d="M12 9v5M9.5 11.5h5"/>'),
       blocked_account: ic(SHIELD + '<path d="m9.6 9.6 4.8 4.8M14.4 9.6l-4.8 4.8"/>'),
-      stolen_credentials: ic('<path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 10v4"/><circle cx="12" cy="16.8" r=".85" fill="currentColor" stroke="none"/>')
+      stolen_credentials: ic('<path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 10v4"/><circle cx="12" cy="16.8" r=".85" fill="currentColor" stroke="none"/>'),
+      universal_login: ic('<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M3 9h18"/><circle cx="6" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="8" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.7"/><path d="M9.2 17a2.8 2.8 0 0 1 5.6 0"/>')
     };
     function monogram() {
       return '<svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true">' +
@@ -255,7 +258,8 @@
       search: ui('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.5-3.5"/>'),
       sliders: ui('<path d="M4 7h9M19 7h1M4 12h1M11 12h9M4 17h6M16 17h4"/><circle cx="16" cy="7" r="2.3"/><circle cx="8" cy="12" r="2.3"/><circle cx="13" cy="17" r="2.3"/>'),
       close: ui('<path d="M6 6l12 12M18 6 6 18"/>'),
-      revert: ui('<path d="M4 9h11a5 5 0 1 1 0 10h-3"/><path d="M7 5 3 9l4 4"/>')
+      revert: ui('<path d="M4 9h11a5 5 0 1 1 0 10h-3"/><path d="M7 5 3 9l4 4"/>'),
+      lock: ui('<rect x="5" y="10.5" width="14" height="9" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>', 1.6)
     };
     function docIcon() { return ui('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>'); }
 
@@ -267,15 +271,16 @@
     var DEV_LABEL = { mobile: "Celular", tablet: "Tablet", desktop: "Desktop" };
 
     var VAR_LABELS = {
-      "application.name": "Nome do app", "application.logo_uri": "Logo (URI)",
+      "application.name": "Nome do app", "application.logo_uri": "Logo (URI)", "application.id": "ID do app",
       "user.email": "E-mail do usuário", "user.name": "Nome do usuário",
       "user.city": "Cidade", "user.country": "País", "user.source_ip": "Endereço IP",
       "inviter.name": "Quem convidou", "organization.name": "Organização (slug)",
       "organization.display_name": "Organização (nome)", "friendly_name": "Nome amigável",
+      "prompt.name": "Prompt", "locale": "Idioma (locale)", "tenant": "Tenant",
       "url": "URL de ação", "link": "Link de ação", "code": "Código (OTP)", "support_url": "URL de suporte"
     };
-    var GROUP_LABELS = { application: "Aplicação", user: "Usuário", organization: "Organização", inviter: "Convite", _scalar: "Parâmetros" };
-    var GROUP_SEQ = ["application", "user", "organization", "inviter", "_scalar"];
+    var GROUP_LABELS = { application: "Aplicação", user: "Usuário", organization: "Organização", inviter: "Convite", prompt: "Prompt", _scalar: "Parâmetros" };
+    var GROUP_SEQ = ["application", "user", "organization", "inviter", "prompt", "_scalar"];
 
     // ---- small helpers ----
     function ls(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }
@@ -340,6 +345,12 @@
       return out;
     }
     function changedCount() { return Object.keys(overrides[key] || {}).length; }
+    function isPageKind() { return (BYNAME[key] || {}).kind === "universal_login"; }
+    function pageUrl() {
+      var ov = overrides[key] || {};
+      var t = ov.tenant || (FIXVARS[key] && FIXVARS[key].tenant) || "acme";
+      return t + ".auth0.com/u/login";
+    }
 
     // ---- nav (sidebar) ----
     function renderNav() {
@@ -385,7 +396,7 @@
         '<div class="bar-title"><div class="t">' + esc(entry.title || key) + '</div><div class="s">' + esc(key) + ".liquid</div></div>" +
         '<div class="spacer"></div>' +
         '<span class="seg-label">Estilo</span>' +
-        seg("theme", THEMES.map(function (t) { return { value: t.key, label: t.label }; }), theme) +
+        seg("theme", THEMES.map(function (t) { return { value: t.key, label: t.label }; }), theme, { disabled: isPageKind() }) +
         seg("device", [
           { value: "mobile", icon: UI.phone, title: "Celular" },
           { value: "tablet", icon: UI.tablet, title: "Tablet" },
@@ -411,19 +422,34 @@
       return DEV_SPECS[device][ori];
     }
     function clientHTML(w, h) {
-      return '<div class="client" style="width:' + w + "px;height:" + h + 'px">' +
-        '<div class="client-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>' +
-        '<span class="lbl">Caixa de entrada</span><span class="w">' + DEV_LABEL[device] + " · " + w + "×" + h + "</span></div>" +
-        '<div class="client-meta"><span class="avatar">' + monogram() + "</span>" +
-        '<div class="meta-tx"><div class="meta-subj" id="m-subj"></div>' +
-        '<div class="meta-from"><b id="m-from-name"></b><span id="m-from-addr"></span></div>' +
-        '<div class="meta-to" id="m-to"></div></div>' +
-        '<span class="meta-time">agora</span></div>' +
-        '<div class="frame-wrap"><iframe id="frame" title="preview" scrolling="no" style="height:600px"></iframe></div></div>';
+      var size = DEV_LABEL[device] + " · " + w + "×" + h;
+      var dots = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+      var bar, meta, iframe;
+      if (isPageKind()) {
+        // A full Universal Login page: browser chrome (address bar) + a full-size iframe.
+        bar = '<div class="client-bar browser">' + dots +
+          '<div class="addr"><span>' + UI.lock + "</span><span>" + esc(pageUrl()) + "</span></div>" +
+          '<span class="w">' + size + "</span></div>";
+        meta = "";
+        iframe = '<iframe id="frame" title="preview" style="height:100%;width:100%"></iframe>';
+      } else {
+        // An email: email-client chrome (subject/sender/recipient) + auto-fit iframe.
+        bar = '<div class="client-bar">' + dots +
+          '<span class="lbl">Caixa de entrada</span><span class="w">' + size + "</span></div>";
+        meta = '<div class="client-meta"><span class="avatar">' + monogram() + "</span>" +
+          '<div class="meta-tx"><div class="meta-subj" id="m-subj"></div>' +
+          '<div class="meta-from"><b id="m-from-name"></b><span id="m-from-addr"></span></div>' +
+          '<div class="meta-to" id="m-to"></div></div>' +
+          '<span class="meta-time">agora</span></div>';
+        iframe = '<iframe id="frame" title="preview" scrolling="no" style="height:600px"></iframe>';
+      }
+      return '<div class="client" style="width:' + w + "px;height:" + h + 'px">' + bar + meta +
+        '<div class="frame-wrap">' + iframe + "</div></div>";
     }
     function sourceHTML() {
       return '<div class="source"><div class="source-bar">' +
-        '<span class="nm"><b>' + esc(key) + ".liquid</b>  ·  tema " + esc(themeLabel(theme)) + "</span>" +
+        '<span class="nm"><b>' + esc(key) + ".liquid</b>  ·  " +
+        (isPageKind() ? "página Universal Login" : "tema " + esc(themeLabel(theme))) + "</span>" +
         '<div class="spacer"></div>' +
         '<button class="copy-btn" data-act="copy"><span>' + (copied ? UI.check : UI.copy) + "</span>" +
         "<span>" + (copied ? "Copiado" : "Copiar") + "</span></button></div>" +
@@ -445,7 +471,9 @@
     }
     function paintIframe() {
       var f = el("frame"); if (!f) return;
-      f.onload = function () { fitFrame(f); };
+      // The ULP page sizes itself (min-height:100vh) and fills the device window; emails
+      // are short, so we auto-fit the iframe height to content and let the window scroll.
+      f.onload = isPageKind() ? null : function () { fitFrame(f); };
       f.srcdoc = lastHtml || "";
     }
     function paintSource() { var pre = el("src"); if (pre) pre.innerHTML = highlight(lastSource); }

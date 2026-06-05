@@ -12,16 +12,16 @@ require_relative "email_theme"
 # A scalar override (query-string param) replaces a top-level key; a nested override
 # (POSTed JSON) deep-merges. Both fall out of deep_merge naturally.
 #
-# Two string-transform passes wrap Liquid (both keep the .liquid uploadable verbatim):
-#   - EmailTheme: a body fragment is wrapped with the chosen theme's <head>/<style>
-#     BEFORE parse; a source that is already a full document passes through unthemed.
-#   - Auth0Ulp: auth0:head/widget tokens are swapped for sentinels BEFORE parse and
-#     for head/widget HTML AFTER render, so Liquid never re-processes the injected HTML.
+# Two string-transform passes prepare the source BEFORE Liquid parses it (both keep
+# the on-disk .liquid uploadable verbatim — they run on an in-memory copy):
+#   - EmailTheme: a body fragment is wrapped with the chosen theme's <head>/<style>;
+#     a source that is already a full document passes through unthemed.
+#   - Auth0Ulp: auth0:head/widget tokens are swapped for representative head/widget
+#     HTML; the injected widget itself carries Liquid, so it resolves in the same pass.
 class Renderer
-  def initialize(repo:, strict: false, cdn_version: Auth0Ulp::DEFAULT_CDN_VERSION)
+  def initialize(repo:, strict: false)
     @repo = repo
     @strict = strict
-    @cdn_version = cdn_version
   end
 
   # Renders <name>.liquid with the resolved context, composed with `theme` (fragments
@@ -30,9 +30,8 @@ class Renderer
   def render(name, overrides: {}, theme: nil)
     context = resolve(name, overrides)
     composed = EmailTheme.compose_source(EmailTheme.normalize(theme), @repo.source(name))
-    source = Auth0Ulp.to_sentinels(composed)
-    output = Liquid::Template.parse(source).render!(context, strict_variables: @strict)
-    Auth0Ulp.from_sentinels(output, cdn_version: @cdn_version)
+    source = Auth0Ulp.substitute(composed)
+    Liquid::Template.parse(source).render!(context, strict_variables: @strict)
   end
 
   # The fully-resolved context without rendering — used to pre-fill the previewer's

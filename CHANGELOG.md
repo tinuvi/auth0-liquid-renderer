@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Variable resolution with built-in Auth0-shaped defaults < `_fixtures/<name>.json` < per-request
   overrides (scalar query params and deep-merging POSTed JSON).
 - `auth0:head` / `auth0:widget` token substitution (both `{%- … -%}` and `{% … %}` forms) so a
-  `.liquid` stays uploadable to Auth0 verbatim; injected head/widget HTML is a visual approximation,
-  with the ULP CSS version configurable via `AUTH0_ULP_CDN_VERSION`.
+  `.liquid` stays uploadable to Auth0 verbatim; the injected head/widget is a brand-neutral monochrome
+  approximation sized to fit the bundled split-screen Universal Login page.
 - HTTP routes: the previewer (`GET /`), `GET`/`POST /render/<name>` (composed email HTML),
   `?_raw=1` (rendered plain text), `?source=1` (composed, token-intact uploadable source),
   `?theme=<quiet|editorial|structured>`, and `GET`/`POST /api/meta/<name>` (subject + sender JSON
@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   LAN address or a tunnel without hitting Sinatra's `403 Host not permitted`.
 - Bundled brand-neutral `examples/` set (11 templates) so the image runs standalone: 10 monochrome
   **pt-BR** identity emails authored as theme-agnostic fragments (OTP rendered as per-character cells,
-  crafted inline SVG icons + monogram, no external images) plus the Universal Login page.
+  crafted inline SVG icons + monogram, no external images) plus a split-screen pt-BR Universal Login page
+  (dark brand panel + widget slot), shown with browser chrome in the previewer.
 - Three switchable email themes (Quiet · Editorial · Structured) composed around each fragment at render
   time via `EmailTheme`; full-document templates are auto-detected and rendered unthemed/verbatim.
 - A previewer UI (`lib/ui/index.html.erb`, vanilla JS, no framework): grouped collapsible sidebar +
