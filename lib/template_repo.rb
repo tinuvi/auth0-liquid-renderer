@@ -5,7 +5,7 @@ require_relative "auth0_ulp"
 
 # Scans TEMPLATES_DIR for templates and fixtures, reading fresh from disk on EVERY
 # call so editing a file and refreshing the browser shows the change with no restart
-# (HANDOFF §3.1 hot reload). Nothing is cached across requests.
+# (hot reload). Nothing is cached across requests.
 #
 # A template is a top-level *.liquid file; its name is the basename without extension
 # (verify_email.liquid -> "verify_email"). Anything under _fixtures/ and any

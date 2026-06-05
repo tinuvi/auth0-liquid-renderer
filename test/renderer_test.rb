@@ -8,8 +8,8 @@ require "renderer"
 require "template_repo"
 
 class RendererTest < Minitest::Test
-  # Curated "key values" each bundled example must surface (HANDOFF §9.1). These come
-  # from the fixtures in examples/_fixtures/.
+  # Curated "key values" each bundled example must surface. These come from the
+  # fixtures in examples/_fixtures/.
   KEY_VALUES = {
     "verify_email" => ["jane.doe@example.com", "VERIFY-TOKEN-123", "https://acme.example.com/support"],
     "verify_email_by_code" => ["jane.doe@example.com", "ACME-7Q2X"],

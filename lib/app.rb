@@ -2,11 +2,12 @@
 
 require "sinatra/base"
 require "json"
+require "ipaddr"
 require_relative "template_repo"
 require_relative "renderer"
 require_relative "auth0_ulp"
 
-# The Sinatra app: routes from HANDOFF §3.4, rendering the renderer's OWN UI. All
+# The Sinatra app: the renderer's HTTP routes, rendering the renderer's OWN UI. All
 # HTTP lives here; the rendering logic stays in Renderer. A fresh TemplateRepo +
 # Renderer are built per request from current ENV so file edits hot-reload and tests
 # stay isolated.
@@ -20,6 +21,30 @@ class App < Sinatra::Base
   set :raise_errors, false
   set :show_exceptions, false
   set :dump_errors, false
+
+  # Sinatra 4 blocks requests whose Host (or X-Forwarded-Host) is not in its
+  # permitted list. That is right for localhost, but it 403s ("Host not permitted")
+  # when you preview the app over a LAN hostname or a tunnel (ngrok, Cloudflare).
+  # ALLOWED_HOSTS (comma-separated, Django-style) opts extra hostnames in; "*"
+  # permits any host. Localhost/loopback always stay permitted so you can't lock
+  # yourself out. Read once at boot — set it in the container's environment.
+  #
+  # Examples:
+  #   ALLOWED_HOSTS="abcd-1-2-3-4.ngrok-free.app"   # one tunnel host
+  #   ALLOWED_HOSTS=".example.com,192.168.1.20"     # a subdomain wildcard + a LAN IP
+  #   ALLOWED_HOSTS="*"                              # any host (handy for a quick demo)
+  def self.host_authorization_config(raw = ENV.fetch("ALLOWED_HOSTS", nil))
+    hosts = raw.to_s.split(",").map(&:strip).reject(&:empty?)
+    return nil if hosts.empty? # keep Sinatra's secure default
+    return { permitted_hosts: [] } if hosts.include?("*") # [] == allow any host
+
+    # Mirror Sinatra's localhost defaults so adding hosts never removes access.
+    base = ["localhost", ".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    { permitted_hosts: base + hosts }
+  end
+
+  host_authorization_options = host_authorization_config
+  set :host_authorization, host_authorization_options if host_authorization_options
 
   helpers do
     def templates_dir

@@ -1,4 +1,4 @@
-# Dev/CI compose for THIS repo only — NOT the consumer's compose (see README/HANDOFF).
+# Dev/CI compose for THIS repo only — NOT the consumer's compose (see README).
 # Every service builds the same image, bind-mounts the working tree, and runs a
 # script from scripts/ (each does `bundle install` first to honor a changed Gemfile).
 services:

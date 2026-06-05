@@ -91,6 +91,24 @@ forms) and substitutes representative head + login-widget HTML so you can previe
 | `BIND` | `0.0.0.0` | Bind address. |
 | `STRICT_VARIABLES` | off | When set, render in Liquid strict-variables mode so undefined references error (catches typos). |
 | `AUTH0_ULP_CDN_VERSION` | `1.59.25` | Version of the Universal Login CSS used in the `auth0:head` approximation. |
+| `ALLOWED_HOSTS` | _(localhost only)_ | Extra hostnames allowed in the `Host`/`X-Forwarded-Host` header, for previewing over a LAN address or a tunnel. See below. |
+
+### Previewing over a LAN address or a tunnel (`ALLOWED_HOSTS`)
+
+The server only answers requests whose host is permitted (localhost by default) and otherwise returns
+`403 Host not permitted`. To preview from another device — your phone over the LAN, or through a tunnel like
+ngrok/Cloudflare — list the extra hostnames in `ALLOWED_HOSTS` (comma-separated, Django-style):
+
+```bash
+docker run --rm -p 9292:9292 \
+  -e ALLOWED_HOSTS="abcd-1-2-3-4.ngrok-free.app" \
+  tinuvi/auth0-liquid-renderer
+```
+
+- Comma-separate multiple hosts: `ALLOWED_HOSTS="host-a.example.com,host-b.example.com"`.
+- A leading dot matches subdomains: `.ngrok-free.app` permits any `*.ngrok-free.app` host.
+- `ALLOWED_HOSTS="*"` permits any host (handy for a quick demo; avoid leaving it on).
+- `localhost` and loopback addresses stay permitted regardless, so you can't lock yourself out.
 
 ## Using it from an infrastructure repo
 
