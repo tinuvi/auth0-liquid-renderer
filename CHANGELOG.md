@@ -5,7 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.0] - 2026-06-05
+
 ### Added
+
 - Local preview server for Auth0 Liquid templates (email + New Universal Login page),
   rendered with Shopify Liquid via the `liquid` gem.
 - Generic template discovery from `TEMPLATES_DIR` (default `/templates`), with hot reload:
@@ -15,9 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `auth0:head` / `auth0:widget` token substitution (both `{%- … -%}` and `{% … %}` forms) so a
   `.liquid` stays uploadable to Auth0 verbatim; injected head/widget HTML is a visual approximation,
   with the ULP CSS version configurable via `AUTH0_ULP_CDN_VERSION`.
-- HTTP routes: index (`GET /`), `GET`/`POST /render/<name>`, and `?_raw=1` plain-text output.
+- HTTP routes: the previewer (`GET /`), `GET`/`POST /render/<name>` (composed email HTML),
+  `?_raw=1` (rendered plain text), `?source=1` (composed, token-intact uploadable source),
+  `?theme=<quiet|editorial|structured>`, and `GET`/`POST /api/meta/<name>` (subject + sender JSON
+  for the email-client chrome).
 - `ALLOWED_HOSTS` env var (Django-style, comma-separated; `*` for any) to permit previewing over a
   LAN address or a tunnel without hitting Sinatra's `403 Host not permitted`.
-- Bundled brand-neutral `examples/` set (11 templates) so the image runs standalone.
+- Bundled brand-neutral `examples/` set (11 templates) so the image runs standalone: 10 monochrome
+  **pt-BR** identity emails authored as theme-agnostic fragments (OTP rendered as per-character cells,
+  crafted inline SVG icons + monogram, no external images) plus the Universal Login page.
+- Three switchable email themes (Quiet · Editorial · Structured) composed around each fragment at render
+  time via `EmailTheme`; full-document templates are auto-detected and rendered unthemed/verbatim.
+- A previewer UI (`lib/ui/index.html.erb`, vanilla JS, no framework): grouped collapsible sidebar +
+  search, device/orientation toggles, theme switch, Prévia ↔ Liquid source view with copy, and a live
+  Variáveis editor — all powered by the Ruby renderer.
+- `_meta.group` (previewer sidebar section) and `_meta.subject` (Liquid subject line) fixture conventions.
 - Docker Compose dev workflow (webserver, tests, lint-formatter), Minitest suite, RuboCop config,
   and a multi-arch publish workflow for `tinuvi/auth0-liquid-renderer`.

@@ -1,18 +1,30 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Your verification code</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">Verify your email</h1>
-      <p>Hi {{ user.email }},</p>
-      <p>Enter this code to verify your email address for {{ application.name }}:</p>
-      <p style="font-size:30px;letter-spacing:6px;font-weight:bold;margin:24px 0">{{ code }}</p>
-      <p style="color:#666;font-size:13px">Didn't request this? Contact
-        <a href="{{ support_url }}">support</a>.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Use o código para confirmar seu e-mail.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Verificação</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="M3.5 7.2 12 13l8.5-5.8"/><circle cx="8.5" cy="16.5" r=".7" fill="currentColor" stroke="none"/><circle cx="12" cy="16.5" r=".7" fill="currentColor" stroke="none"/><circle cx="15.5" cy="16.5" r=".7" fill="currentColor" stroke="none"/></svg></div>
+      <div class="eml-eyebrow">Código de confirmação</div>
+      <h1 class="eml-h1">Confirme seu e-mail com este código</h1>
+      <p class="eml-lead">Digite o código abaixo na {{ application.name }} para confirmar seu endereço de e-mail.</p>
+      <div class="eml-code-wrap">
+        <div class="eml-code-label">Seu código</div>
+        <div class="eml-code">{% assign __chars = code | split: "" %}{% for ch in __chars %}{% if ch == "-" %}<span class="eml-dash">-</span>{% else %}<span class="eml-cell">{{ ch }}</span>{% endif %}{% endfor %}</div>
+      </div>
+      <p class="eml-note">O código expira em 10 minutos. Se você não solicitou, pode ignorar este e-mail.</p>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

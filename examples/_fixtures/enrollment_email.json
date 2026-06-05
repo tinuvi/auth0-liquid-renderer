@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Enroll in MFA",
-    "description": "Invites a user to enroll in multi-factor authentication.",
+    "title": "Ativar verificação em 2 etapas",
+    "description": "Convida o usuário a configurar o MFA.",
+    "group": "Acesso à conta",
+    "subject": "Ative a verificação em duas etapas",
     "kind": "email"
   },
   "application": {

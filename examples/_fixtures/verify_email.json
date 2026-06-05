@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Verification Email (Link)",
-    "description": "Confirms a new email address via a verification link.",
+    "title": "Verificar e-mail (link)",
+    "description": "Confirma um novo e-mail por link.",
+    "group": "Onboarding",
+    "subject": "Confirme seu endereço de e-mail",
     "kind": "email"
   },
   "application": {

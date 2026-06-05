@@ -64,6 +64,22 @@ class TemplateRepoTest < Minitest::Test
       assert_equal "universal_login", page[:kind]
       assert_equal "email", mail[:kind]
       assert_equal "Plain Mail", mail[:title] # humanized from filename when no _meta
+      assert_nil mail[:group] # absent from _meta -> nil
+      assert_nil mail[:subject]
+    end
+  end
+
+  def test_entries_expose_group_and_subject_from_meta
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "m.liquid"), "<div>hi</div>")
+      FileUtils.mkdir_p(File.join(dir, "_fixtures"))
+      File.write(File.join(dir, "_fixtures", "m.json"),
+                 JSON.dump("_meta" => { "title" => "M", "group" => "Onboarding",
+                                        "subject" => "Oi {{ application.name }}" }))
+
+      entry = TemplateRepo.new(dir).entries.first
+      assert_equal "Onboarding", entry[:group]
+      assert_equal "Oi {{ application.name }}", entry[:subject]
     end
   end
 

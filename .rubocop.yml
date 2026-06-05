@@ -28,8 +28,9 @@ Style/FrozenStringLiteralComment:
 Naming/VariableNumber:
   CheckMethodNames: false
 
-# ERB views and the static Auth0 HTML snapshot legitimately carry long lines.
+# ERB views and the static Auth0 HTML / email-theme CSS snapshots legitimately carry long lines.
 Layout/LineLength:
   Max: 120
   Exclude:
     - "lib/auth0_ulp.rb"
+    - "lib/email_theme.rb"

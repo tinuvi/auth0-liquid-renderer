@@ -1,41 +1,29 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Verify your email</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td align="center" style="padding:32px 16px">
-          <table role="presentation" width="480" cellpadding="0" cellspacing="0"
-                 style="background:#ffffff;border-radius:8px;padding:32px">
-            <tr>
-              <td>
-                <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" style="display:block" />
-                <h1 style="font-size:20px;margin:24px 0 8px">Confirm your email</h1>
-                <p>Hi {{ user.email }},</p>
-                <p>Welcome to {{ friendly_name }}. Confirm your email address to activate your
-                   {{ application.name }} account.</p>
-                <p style="margin:28px 0">
-                  <a href="{{ url }}"
-                     style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
-                    Verify your email
-                  </a>
-                </p>
-                <p style="color:#666;font-size:13px">
-                  Trouble with the button? Paste this link into your browser:<br />
-                  <a href="{{ url }}">{{ url }}</a>
-                </p>
-                <p style="color:#666;font-size:13px">
-                  Need help? Contact <a href="{{ support_url }}">support</a>.
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Confirme seu e-mail para concluir o cadastro.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Verificação</span>
+    </div>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.2"/><path d="M3.5 7.2 12 13l8.5-5.8"/><circle cx="18" cy="17.5" r="4.2" fill="var(--paper,#fff)"/><path d="m16.2 17.6 1.2 1.2 2.4-2.6"/></svg></div>
+      <div class="eml-eyebrow">Confirmação de e-mail</div>
+      <h1 class="eml-h1">Confirme seu endereço de e-mail</h1>
+      <p class="eml-lead">{% if user.name %}Olá, {{ user.name }}. {% endif %}Falta só um passo para concluir seu cadastro na {{ application.name }}. Confirme que este é o seu e-mail.</p>
+      <div class="eml-cta"><a class="eml-btn" href="{{ url }}">Confirmar e-mail</a></div>
+      <p class="eml-note">Este link expira em 5 dias. Se você não criou esta conta, ignore este e-mail.</p>
+      <p class="eml-note">Se o botão não funcionar, copie e cole este endereço no seu navegador:</p>
+      <div class="eml-fallback">{{ url }}</div>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

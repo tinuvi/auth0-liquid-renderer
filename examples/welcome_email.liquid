@@ -1,16 +1,27 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Welcome</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">Welcome to {{ friendly_name }}, {{ user.name }}!</h1>
-      <p>Your {{ application.name }} account ({{ user.email }}) is ready to go.</p>
-      <p>We're glad you're here. If you ever need a hand, reach out to
-        <a href="{{ support_url }}">support</a>.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Sua conta está pronta para uso.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Conta</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><path d="M12 3.5v3.2M12 17.3v3.2M3.5 12h3.2M17.3 12h3.2M6 6l2.2 2.2M15.8 15.8 18 18M18 6l-2.2 2.2M8.2 15.8 6 18"/><circle cx="12" cy="12" r="3.1"/></svg></div>
+      <div class="eml-eyebrow">Conta ativada</div>
+      <h1 class="eml-h1">Sua conta na {{ application.name }} está pronta</h1>
+      <p class="eml-lead">{% if user.name %}Olá, {{ user.name }}. {% endif %}Seu e-mail foi confirmado e sua conta já está ativa. Que bom ter você aqui.</p>
+      <p class="eml-p">A partir de agora você pode entrar na {{ application.name }} com segurança usando <span class="eml-strong">{{ user.email }}</span>.</p>
+      <p class="eml-note">Por segurança, ative a verificação em duas etapas assim que possível.</p>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

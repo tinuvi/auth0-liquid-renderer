@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Blocked Account Email",
-    "description": "Alerts a user that a suspicious sign-in was blocked.",
+    "title": "Acesso suspeito bloqueado",
+    "description": "Alerta de login suspeito bloqueado.",
+    "group": "Segurança",
+    "subject": "Bloqueamos um acesso suspeito à sua conta",
     "kind": "email"
   },
   "application": {
@@ -11,7 +13,7 @@
   "user": {
     "email": "jane.doe@example.com",
     "city": "Springfield",
-    "country": "United States",
+    "country": "Estados Unidos",
     "source_ip": "203.0.113.42"
   },
   "url": "https://acme.example.com/unblock?ticket=UNBLOCK-321",

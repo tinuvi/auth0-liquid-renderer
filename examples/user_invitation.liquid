@@ -1,24 +1,29 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>You're invited</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">You've been invited to {{ organization.display_name }}</h1>
-      <p>Hi {{ user.email }},</p>
-      <p>{{ inviter.name }} invited you to join <strong>{{ organization.display_name }}</strong>
-         on {{ friendly_name }}.</p>
-      <p style="margin:28px 0">
-        <a href="{{ url }}"
-           style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
-          Accept invitation
-        </a>
-      </p>
-      <p style="color:#666;font-size:13px">Didn't expect this? Contact
-        <a href="{{ support_url }}">support</a>.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Você recebeu um convite para participar.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Convite</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M18 7.5v5M20.5 10h-5"/></svg></div>
+      <div class="eml-eyebrow">Convite para organização</div>
+      <h1 class="eml-h1">{% if inviter.name %}{{ inviter.name }} convidou você{% else %}Você foi convidado(a){% endif %}</h1>
+      <p class="eml-lead">Você foi convidado(a) para participar de <span class="eml-strong">{{ organization.display_name }}</span> na {{ application.name }}.</p>
+      <div class="eml-cta"><a class="eml-btn" href="{{ url }}">Aceitar convite</a></div>
+      <p class="eml-note">Este convite é pessoal e foi enviado para {{ user.email }}. Se você não esperava por ele, pode ignorá-lo com segurança.</p>
+      <p class="eml-note">Se o botão não funcionar, copie e cole este endereço no seu navegador:</p>
+      <div class="eml-fallback">{{ url }}</div>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

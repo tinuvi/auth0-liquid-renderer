@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Change Password (Code)",
-    "description": "Password reset with a one-time code.",
+    "title": "Redefinir senha (código)",
+    "description": "Redefinição de senha por código único.",
+    "group": "Acesso à conta",
+    "subject": "Seu código para redefinir a senha",
     "kind": "email"
   },
   "application": {

@@ -3,18 +3,20 @@
 require "liquid"
 require_relative "default_context"
 require_relative "auth0_ulp"
+require_relative "email_theme"
 
-# PURE rendering core: (template_name, overrides) -> rendered String. No HTTP lives
-# here (routing is in app.rb), so this is trivially unit-testable.
+# PURE rendering core: (template_name, overrides, theme) -> rendered String. No HTTP
+# lives here (routing is in app.rb), so this is trivially unit-testable.
 #
 # Merge order, later wins: built-in defaults < fixture vars < overrides.
 # A scalar override (query-string param) replaces a top-level key; a nested override
 # (POSTed JSON) deep-merges. Both fall out of deep_merge naturally.
 #
-# ULP tokens are handled by a substitution pass around Liquid (see Auth0Ulp): the raw
-# source has its auth0:head/widget tokens swapped for sentinels BEFORE parse, and the
-# sentinels are swapped for head/widget HTML AFTER render — so the .liquid stays
-# uploadable to Auth0 verbatim and Liquid never re-processes the injected HTML.
+# Two string-transform passes wrap Liquid (both keep the .liquid uploadable verbatim):
+#   - EmailTheme: a body fragment is wrapped with the chosen theme's <head>/<style>
+#     BEFORE parse; a source that is already a full document passes through unthemed.
+#   - Auth0Ulp: auth0:head/widget tokens are swapped for sentinels BEFORE parse and
+#     for head/widget HTML AFTER render, so Liquid never re-processes the injected HTML.
 class Renderer
   def initialize(repo:, strict: false, cdn_version: Auth0Ulp::DEFAULT_CDN_VERSION)
     @repo = repo
@@ -22,20 +24,41 @@ class Renderer
     @cdn_version = cdn_version
   end
 
-  # Renders <name>.liquid with the resolved context. Raises Liquid::Error (including
-  # Liquid::UndefinedVariable under strict mode) so callers surface failures instead
-  # of returning a blank page.
-  def render(name, overrides: {})
+  # Renders <name>.liquid with the resolved context, composed with `theme` (fragments
+  # only). Raises Liquid::Error (including Liquid::UndefinedVariable under strict mode)
+  # so callers surface failures instead of returning a blank page.
+  def render(name, overrides: {}, theme: nil)
     context = resolve(name, overrides)
-    source = Auth0Ulp.to_sentinels(@repo.source(name))
+    composed = EmailTheme.compose_source(EmailTheme.normalize(theme), @repo.source(name))
+    source = Auth0Ulp.to_sentinels(composed)
     output = Liquid::Template.parse(source).render!(context, strict_variables: @strict)
     Auth0Ulp.from_sentinels(output, cdn_version: @cdn_version)
   end
 
-  # The fully-resolved context without rendering — used to pre-fill the render page's
-  # JSON textarea.
+  # The fully-resolved context without rendering — used to pre-fill the previewer's
+  # variable editor.
   def context_for(name, overrides: {})
     resolve(name, overrides)
+  end
+
+  # Renders the template's `_meta.subject` (itself a Liquid string) with the resolved
+  # context. Returns "" when no subject is declared. Used for the email-client chrome.
+  def render_subject(name, overrides: {})
+    subject = @repo.fixture(name)["meta"]["subject"].to_s
+    return "" if subject.empty?
+
+    Liquid::Template.parse(subject).render!(resolve(name, overrides), strict_variables: @strict)
+  end
+
+  # The "From" shown in the previewer's email-client chrome, derived from the resolved
+  # application.name (brand-neutral fallback "Acme"). Mirrors the design prototype.
+  def sender_for(name, overrides: {})
+    app = resolve(name, overrides)["application"]
+    app_name = (app.is_a?(Hash) ? app["name"].to_s : "")
+    app_name = "Acme" if app_name.empty?
+    slug = app_name.downcase.gsub(/[^a-z0-9]/, "")
+    slug = "acme" if slug.empty?
+    { name: app_name, addr: "nao-responder@#{slug}.com" }
   end
 
   private
