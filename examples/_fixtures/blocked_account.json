@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "title": "Blocked Account Email",
+    "description": "Alerts a user that a suspicious sign-in was blocked.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com",
+    "city": "Springfield",
+    "country": "United States",
+    "source_ip": "203.0.113.42"
+  },
+  "url": "https://acme.example.com/unblock?ticket=UNBLOCK-321",
+  "support_url": "https://acme.example.com/support"
+}

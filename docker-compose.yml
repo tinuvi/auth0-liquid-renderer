@@ -1,0 +1,25 @@
+# Dev/CI compose for THIS repo only — NOT the consumer's compose (see README/HANDOFF).
+# Every service builds the same image, bind-mounts the working tree, and runs a
+# script from scripts/ (each does `bundle install` first to honor a changed Gemfile).
+services:
+  webserver:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "9292:9292"
+    environment:
+      - TEMPLATES_DIR=/app/examples # serve the bundled sample templates
+    command: ["./scripts/start-webserver.sh"]
+
+  integration-tests:
+    build: .
+    volumes:
+      - .:/app
+    command: ["./scripts/start-tests.sh"]
+
+  lint-formatter:
+    build: .
+    volumes:
+      - .:/app
+    command: ["./scripts/start-formatter-lint.sh"]

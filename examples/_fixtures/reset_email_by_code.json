@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "title": "Change Password (Code)",
+    "description": "Password reset with a one-time code.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com"
+  },
+  "code": "RST-55AA",
+  "support_url": "https://acme.example.com/support"
+}

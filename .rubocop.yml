@@ -1,0 +1,35 @@
+AllCops:
+  TargetRubyVersion: 4.0
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "vendor/**/*"
+    - "examples/**/*" # user-facing Liquid/JSON sample assets, not Ruby we own
+
+# This is a small, single-process local dev tool — the size cops add noise
+# without value here. Style cops below are matters of taste we don't gate on.
+Metrics:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+# HTTP status codes in test method names (returns_200, returns_404) are clearer than
+# wordy alternatives; keep checking real variable names though.
+Naming/VariableNumber:
+  CheckMethodNames: false
+
+# ERB views and the static Auth0 HTML snapshot legitimately carry long lines.
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - "lib/auth0_ulp.rb"

@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "title": "Verification Code for Email MFA",
+    "description": "One-time code for email-based multi-factor authentication.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com"
+  },
+  "code": "OOB-9931",
+  "support_url": "https://acme.example.com/support"
+}

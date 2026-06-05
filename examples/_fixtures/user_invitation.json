@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "title": "User Invitation",
+    "description": "Invites a user to join an organization.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "friendly_name": "Acme",
+  "user": {
+    "email": "newuser@example.com"
+  },
+  "inviter": {
+    "name": "Alex Carter"
+  },
+  "organization": {
+    "name": "acme-eng",
+    "display_name": "Acme Engineering"
+  },
+  "url": "https://acme.example.com/invite?ticket=INVITE-987",
+  "support_url": "https://acme.example.com/support"
+}

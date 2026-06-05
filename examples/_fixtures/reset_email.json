@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "title": "Change Password (Link)",
+    "description": "Password reset via a one-time link.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com"
+  },
+  "url": "https://acme.example.com/reset?ticket=RESET-789",
+  "support_url": "https://acme.example.com/support"
+}

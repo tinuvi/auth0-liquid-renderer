@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "title": "Universal Login page template",
+    "description": "The New Universal Login page wrapper. Uses the auth0:head and auth0:widget tokens.",
+    "kind": "universal_login"
+  },
+  "application": {
+    "name": "Acme",
+    "id": "acme-app-id"
+  },
+  "prompt": {
+    "name": "login"
+  },
+  "organization": {
+    "name": "acme",
+    "display_name": "Acme Inc."
+  },
+  "locale": "en",
+  "tenant": "acme"
+}

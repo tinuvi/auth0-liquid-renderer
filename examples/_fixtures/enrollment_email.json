@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "title": "Enroll in MFA",
+    "description": "Invites a user to enroll in multi-factor authentication.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com"
+  },
+  "link": "https://acme.example.com/enroll?ticket=ENROLL-456",
+  "support_url": "https://acme.example.com/support"
+}

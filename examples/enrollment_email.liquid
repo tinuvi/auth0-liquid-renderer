@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Enroll in multi-factor authentication</title>
+  </head>
+  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
+    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
+      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
+      <h1 style="font-size:20px">Add an extra layer of security</h1>
+      <p>Hi {{ user.email }},</p>
+      <p>Protect your {{ application.name }} account by enrolling in multi-factor authentication.</p>
+      <p style="margin:28px 0">
+        <a href="{{ link }}"
+           style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
+          Enroll now
+        </a>
+      </p>
+      <p style="color:#666;font-size:13px">Questions? Contact <a href="{{ support_url }}">support</a>.</p>
+    </div>
+  </body>
+</html>

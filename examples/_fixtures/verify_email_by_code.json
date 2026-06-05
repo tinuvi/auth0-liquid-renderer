@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "title": "Verification Email (Code)",
+    "description": "Confirms a new email address with a one-time code.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "user": {
+    "email": "jane.doe@example.com"
+  },
+  "code": "ACME-7Q2X",
+  "support_url": "https://acme.example.com/support"
+}

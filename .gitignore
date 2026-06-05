@@ -1,0 +1,24 @@
+# Ruby / Bundler — gems live in the image, never vendored into the tree
+/.bundle/
+/vendor/
+*.gem
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+
+# macOS
+.DS_Store
+
+# Runtime
+/tmp/
+/log/
+*.log
+
+# Tooling scratch & local validation artifacts (not part of the project)
+.playwright-mcp/
+screenshots/
+
+# Keep .claude/ project rules tracked; ignore only machine-local overrides
+.claude/settings.local.json
