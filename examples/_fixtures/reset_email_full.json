@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "title": "Redefinir senha (HTML completo)",
+    "description": "Variante full-HTML (tabelas/MJML) — upload como reset_email.",
+    "group": "Acesso à conta",
+    "subject": "Redefina sua senha da {{ application.name }}",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://placehold.co/150x48/15151a/ffffff/png?text=Acme"
+  },
+  "user": {
+    "email": "jane.doe@example.com",
+    "user_metadata": { "preferredLanguage": "pt-BR" }
+  },
+  "url": "https://acme.example.com/reset?ticket=RESET-FULL-789",
+  "support_url": "https://acme.example.com/support"
+}

@@ -19,6 +19,7 @@ class RendererTest < Minitest::Test
     "welcome_email" => ["Jane Doe", "Acme"],
     "enrollment_email" => ["jane.doe@example.com", "ENROLL-456"],
     "reset_email" => ["jane.doe@example.com", "RESET-789"],
+    "reset_email_full" => ["Acme", "Você solicitou a troca de senha", "RESET-FULL-789"],
     "reset_email_by_code" => ["jane.doe@example.com", "Código de redefinição"],
     "blocked_account" => ["Springfield", "Estados Unidos", "203.0.113.42", "UNBLOCK-321"],
     "stolen_credentials" => ["jane.doe@example.com", "BREACH-654"],
@@ -33,7 +34,7 @@ class RendererTest < Minitest::Test
   end
 
   def test_every_example_is_covered_and_renders_without_error
-    assert_equal 11, @repo.names.length, "expected 11 bundled examples"
+    assert_equal 12, @repo.names.length, "expected 12 bundled examples"
     @repo.names.each do |name|
       output = @renderer.render(name)
       refute_empty output.strip, "#{name} rendered empty"
