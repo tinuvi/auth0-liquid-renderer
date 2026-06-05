@@ -19,7 +19,7 @@ class App < Sinatra::Base
   EXCLUDED_PARAMS = %w[name _raw source theme splat captures].freeze
   # Sidebar section order for the previewer; templates without a known group fall into
   # a trailing "Outros" bucket (e.g. the Universal Login page).
-  GROUP_ORDER = ["Onboarding", "Acesso à conta", "Segurança"].freeze
+  GROUP_ORDER = ["Onboarding", "Acesso à conta", "Segurança", "Universal Login"].freeze
 
   set :views, File.expand_path("ui", __dir__)
   # We always render our own pages (incl. errors), so turn off Sinatra's defaults
@@ -71,12 +71,7 @@ class App < Sinatra::Base
     end
 
     def renderer
-      Renderer.new(repo: repo, strict: truthy?(ENV.fetch("STRICT_VARIABLES", nil)), cdn_version: ulp_cdn_version)
-    end
-
-    def ulp_cdn_version
-      v = ENV["AUTH0_ULP_CDN_VERSION"].to_s.strip
-      v.empty? ? Auth0Ulp::DEFAULT_CDN_VERSION : v
+      Renderer.new(repo: repo, strict: truthy?(ENV.fetch("STRICT_VARIABLES", nil)))
     end
 
     def truthy?(val)

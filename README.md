@@ -112,11 +112,14 @@ The previewer's **Liquid** view shows exactly this, and **Copiar** copies it.
 
 Auth0's page template requires the literal tokens `{%- auth0:head -%}` and `{%- auth0:widget -%}` in the
 body. This renderer accepts those exact tokens (and the non-trimmed `{% auth0:head %}` / `{% auth0:widget %}`
-forms) and substitutes representative head + login-widget HTML so you can preview the page layout.
+forms) and substitutes a representative head + login widget so you can preview the page layout. The bundled
+`universal_login.liquid` is a brand-neutral **split-screen** page — a dark brand panel beside the widget slot —
+rendered in the previewer with browser chrome (an address bar) rather than the email-client chrome.
 
-> The injected head/widget HTML is a **visual approximation** for layout preview only — it will not match
-> Auth0 pixel-for-pixel and drifts across Auth0 UI versions. Pin the approximated ULP CSS with
-> `AUTH0_ULP_CDN_VERSION`.
+> The injected head/widget is a **visual approximation** for layout preview only — a clean monochrome login
+> widget sized to fit the bundled page. Auth0 serves its own tenant-specific widget at runtime, so the preview
+> will not match pixel-for-pixel. The `.liquid` source (and `?source=1`) keeps the real `auth0:head` /
+> `auth0:widget` tokens verbatim, so the file stays uploadable to `auth0_branding`.
 
 ## Environment variables
 
@@ -126,7 +129,6 @@ forms) and substitutes representative head + login-widget HTML so you can previe
 | `PORT` | `9292` | Listen port. |
 | `BIND` | `0.0.0.0` | Bind address. |
 | `STRICT_VARIABLES` | off | When set, render in Liquid strict-variables mode so undefined references error (catches typos). |
-| `AUTH0_ULP_CDN_VERSION` | `1.59.25` | Version of the Universal Login CSS used in the `auth0:head` approximation. |
 | `ALLOWED_HOSTS` | _(localhost only)_ | Extra hostnames allowed in the `Host`/`X-Forwarded-Host` header, for previewing over a LAN address or a tunnel. See below. |
 
 ### Previewing over a LAN address or a tunnel (`ALLOWED_HOSTS`)
