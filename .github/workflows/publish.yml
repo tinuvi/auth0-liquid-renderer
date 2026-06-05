@@ -1,13 +1,13 @@
 name: Publish
 
 # Tests + lint run on every PR and push. The image is built and pushed ONLY on a
-# push to main (-> :latest + :sha) or a version tag v* (-> :<version> + :latest).
+# push to main (-> :latest + :sha) or a version tag like 0.1.0 (-> :<version> + :latest).
 # Pull requests never publish. Needs repo secrets DOCKER_HUB_USER / DOCKER_HUB_PASSWORD.
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
   pull_request:
 
 permissions:
@@ -29,7 +29,7 @@ jobs:
   build-and-publish:
     needs: verify
     # Publish only on a push to main or a version tag — never on pull requests.
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -43,7 +43,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ github.repository }}
-          # main push -> :latest + :sha-<short>; tag v1.2.3 -> :1.2.3 + :latest
+          # main push -> :latest + :sha-<short>; tag 0.1.0 -> :0.1.0 + :latest
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}

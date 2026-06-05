@@ -54,6 +54,6 @@ Follow these end-to-end on every change. Run everything through Docker Compose â
 
 ## Deployment
 
-- Cutting a release is a human-only action: only a maintainer creates and pushes the `vX.Y.Z` tag. Never create, push, or delete git tags, or otherwise trigger a release, on the user's behalf.
-- `.github/workflows/publish.yml` builds the multi-arch (`linux/amd64` + `linux/arm64`) image and pushes to Docker Hub `tinuvi/auth0-liquid-renderer`: a push to `main` publishes `:latest` + `:sha-<short>`; an annotated `vX.Y.Z` tag publishes `:<version>` + `:latest`. Pull requests never publish.
+- Cutting a release is a human-only action: only a maintainer creates and pushes the `X.Y.Z` tag (e.g. `0.1.0`). Never create, push, or delete git tags, or otherwise trigger a release, on the user's behalf.
+- `.github/workflows/publish.yml` builds the multi-arch (`linux/amd64` + `linux/arm64`) image and pushes to Docker Hub `tinuvi/auth0-liquid-renderer`: a push to `main` publishes `:latest` + `:sha-<short>`; an annotated `X.Y.Z` tag (e.g. `0.1.0`) publishes `:<version>` + `:latest`. Pull requests never publish.
 - Derive the version from the git tag; do not hardcode it anywhere else.
