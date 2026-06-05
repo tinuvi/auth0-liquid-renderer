@@ -1,0 +1,77 @@
+name: Publish
+
+# PR + push to main: run tests and a check-only lint via the dev compose services.
+# Tag v*: build the multi-arch image, run the suite inside it, and push to Docker Hub.
+# Requires repo secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN for the release job.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: tinuvi/auth0-liquid-renderer
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Run tests (Docker Compose)
+        run: docker compose run --rm --remove-orphans integration-tests
+
+      # Check-only lint (no --autocorrect-all) so the job fails on offenses
+      # instead of silently rewriting files.
+      - name: Lint (check-only)
+        run: docker compose run --rm --no-deps lint-formatter sh -c "bundle install && bundle exec rubocop"
+
+  release:
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Derive image tags from the git tag
+        id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+          # latest=auto also tags :latest on a semver push.
+
+      # Build a single-arch image and run the suite inside it before publishing.
+      - name: Build test image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          load: true
+          tags: auth0-liquid-renderer:ci
+
+      - name: Run tests inside the image
+        run: docker run --rm auth0-liquid-renderer:ci bundle exec rake test
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "title": "Welcome Email",
+    "description": "Sent after a user verifies their email.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "friendly_name": "Acme",
+  "user": {
+    "email": "jane.doe@example.com",
+    "name": "Jane Doe"
+  },
+  "support_url": "https://acme.example.com/support"
+}

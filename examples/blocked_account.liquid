@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Suspicious sign-in blocked</title>
+  </head>
+  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
+    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
+      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
+      <h1 style="font-size:20px">We blocked a suspicious sign-in</h1>
+      <p>Hi {{ user.email }},</p>
+      <p>We blocked a login attempt to your {{ application.name }} account from an unrecognized device
+         {% if user.city %}near {{ user.city }}, {{ user.country }}{% endif %}
+         {% if user.source_ip %}(IP {{ user.source_ip }}){% endif %}.</p>
+      <p>If this was you, unblock your account:</p>
+      <p style="margin:28px 0">
+        <a href="{{ url }}"
+           style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
+          Unblock my account
+        </a>
+      </p>
+      <p style="color:#666;font-size:13px">If this wasn't you, contact
+        <a href="{{ support_url }}">support</a> right away.</p>
+    </div>
+  </body>
+</html>

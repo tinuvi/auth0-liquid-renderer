@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "title": "Verification Email (Link)",
+    "description": "Confirms a new email address via a verification link.",
+    "kind": "email"
+  },
+  "application": {
+    "name": "Acme",
+    "logo_uri": "https://assets.example.com/acme/logo.png"
+  },
+  "friendly_name": "Acme",
+  "user": {
+    "email": "jane.doe@example.com",
+    "name": "Jane Doe"
+  },
+  "url": "https://acme.example.com/verify?ticket=VERIFY-TOKEN-123",
+  "support_url": "https://acme.example.com/support"
+}

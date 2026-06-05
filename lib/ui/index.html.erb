@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auth0 Liquid Renderer</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5;
+           max-width: 56rem; margin: 2.5rem auto; padding: 0 1rem; }
+    h1 { margin-bottom: 0.25rem; }
+    .lede { color: #666; margin-top: 0; }
+    h2 { margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
+    a { color: #635dff; text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .desc { display: block; color: #666; font-weight: 400; font-size: 0.9rem; }
+    code { color: #888; font-size: 0.8rem; }
+    .empty { color: #b00; }
+  </style>
+</head>
+<body>
+  <h1>Auth0 Liquid Renderer</h1>
+  <p class="lede">Local preview of Auth0 Liquid templates from
+    <code><%= h(templates_dir) %></code>. Pick a template to render.</p>
+
+  <% if @entries.empty? %>
+    <p class="empty">No <code>.liquid</code> templates found. Mount a folder at
+      <code>/templates</code> or set <code>TEMPLATES_DIR</code>.</p>
+  <% end %>
+
+  <% labels = { "email" => "Email templates", "universal_login" => "Universal Login" } %>
+  <% grouped = @entries.group_by { |e| e[:kind] } %>
+  <% ordered = (%w[email universal_login] + grouped.keys).uniq %>
+  <% ordered.each do |kind| %>
+    <% rows = grouped[kind] %>
+    <% next unless rows && !rows.empty? %>
+    <h2><%= h(labels[kind] || kind.split(/[_-]/).map(&:capitalize).join(" ")) %></h2>
+    <ul>
+      <% rows.each do |e| %>
+        <li>
+          <a href="/render/<%= h(e[:name]) %>"><%= h(e[:title]) %></a>
+          <code><%= h(e[:name]) %>.liquid</code>
+          <% if e[:description] %><span class="desc"><%= h(e[:description]) %></span><% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</body>
+</html>
