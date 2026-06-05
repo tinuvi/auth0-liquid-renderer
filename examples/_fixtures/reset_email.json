@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Change Password (Link)",
-    "description": "Password reset via a one-time link.",
+    "title": "Redefinir senha (link)",
+    "description": "Redefinição de senha por link único.",
+    "group": "Acesso à conta",
+    "subject": "Redefina sua senha da {{ application.name }}",
     "kind": "email"
   },
   "application": {

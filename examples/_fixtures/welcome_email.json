@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Welcome Email",
-    "description": "Sent after a user verifies their email.",
+    "title": "Boas-vindas",
+    "description": "Enviado após o usuário verificar o e-mail.",
+    "group": "Onboarding",
+    "subject": "Bem-vindo(a) à {{ application.name }}",
     "kind": "email"
   },
   "application": {

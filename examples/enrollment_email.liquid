@@ -1,22 +1,29 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Enroll in multi-factor authentication</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">Add an extra layer of security</h1>
-      <p>Hi {{ user.email }},</p>
-      <p>Protect your {{ application.name }} account by enrolling in multi-factor authentication.</p>
-      <p style="margin:28px 0">
-        <a href="{{ link }}"
-           style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
-          Enroll now
-        </a>
-      </p>
-      <p style="color:#666;font-size:13px">Questions? Contact <a href="{{ support_url }}">support</a>.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Proteja sua conta com uma camada extra.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Segurança</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><path d="M12 3 5 5.6v5.2c0 4.2 2.9 7.6 7 9.2 4.1-1.6 7-5 7-9.2V5.6L12 3Z"/><path d="M12 9v5M9.5 11.5h5"/></svg></div>
+      <div class="eml-eyebrow">Verificação em duas etapas</div>
+      <h1 class="eml-h1">Adicione uma camada extra de segurança</h1>
+      <p class="eml-lead">Ative a verificação em duas etapas na sua conta da {{ application.name }} e proteja seu acesso com mais do que apenas a senha.</p>
+      <div class="eml-cta"><a class="eml-btn" href="{{ link }}">Ativar agora</a></div>
+      <p class="eml-note">Leva menos de um minuto e você só precisa configurar uma vez por dispositivo.</p>
+      <p class="eml-note">Se o botão não funcionar, copie e cole este endereço no seu navegador:</p>
+      <div class="eml-fallback">{{ link }}</div>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

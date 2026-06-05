@@ -1,18 +1,30 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Your authentication code</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">Your authentication code</h1>
-      <p>Hi {{ user.email }},</p>
-      <p>Enter this one-time code to finish signing in to {{ application.name }}:</p>
-      <p style="font-size:30px;letter-spacing:6px;font-weight:bold;margin:24px 0">{{ code }}</p>
-      <p style="color:#666;font-size:13px">This code expires shortly. Didn't try to sign in? Contact
-        <a href="{{ support_url }}">support</a>.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Use o código para concluir seu acesso.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Verificação</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><path d="M12 3 5 5.6v5.2c0 4.2 2.9 7.6 7 9.2 4.1-1.6 7-5 7-9.2V5.6L12 3Z"/><circle cx="9" cy="11.7" r=".75" fill="currentColor" stroke="none"/><circle cx="12" cy="11.7" r=".75" fill="currentColor" stroke="none"/><circle cx="15" cy="11.7" r=".75" fill="currentColor" stroke="none"/></svg></div>
+      <div class="eml-eyebrow">Verificação em duas etapas</div>
+      <h1 class="eml-h1">Seu código de verificação</h1>
+      <p class="eml-lead">Use o código abaixo para concluir seu acesso à {{ application.name }}. Ele confirma que é realmente você.</p>
+      <div class="eml-code-wrap">
+        <div class="eml-code-label">Código de acesso</div>
+        <div class="eml-code">{% assign __chars = code | split: "" %}{% for ch in __chars %}{% if ch == "-" %}<span class="eml-dash">-</span>{% else %}<span class="eml-cell">{{ ch }}</span>{% endif %}{% endfor %}</div>
+      </div>
+      <p class="eml-note">Nunca compartilhe este código. A {{ application.name }} jamais pedirá que você o informe por telefone ou mensagem. Expira em 10 minutos.</p>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Verification Email (Code)",
-    "description": "Confirms a new email address with a one-time code.",
+    "title": "Verificar e-mail (código)",
+    "description": "Confirma um novo e-mail por código.",
+    "group": "Onboarding",
+    "subject": "Seu código de confirmação",
     "kind": "email"
   },
   "application": {

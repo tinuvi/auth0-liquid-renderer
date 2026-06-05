@@ -2,12 +2,16 @@
 
 A small, local preview server for **Auth0 Liquid templates** — both **email templates** and the
 **New Universal Login page template**. Point it at a folder of `.liquid` files, open
-`http://localhost:9292/`, pick a template, optionally tweak the render variables, and see the rendered
-HTML in your browser.
+`http://localhost:9292/`, and you get a previewer: a collapsible sidebar grouped by kind, device and
+orientation toggles, a live variable editor, and a Prévia ↔ Liquid source switch.
 
 It never talks to Auth0 and needs no credentials — it is a preview tool. A file that renders here is meant
 to be uploadable to Auth0 **verbatim** (e.g. via the Terraform `auth0_email_template` /
-`auth0_branding` resources), so the same `.liquid` file is both your source of truth and your preview input.
+`auth0_branding` resources). Full-document templates (the Universal Login page, or your own standalone
+`.liquid` files) are your source of truth and preview input unchanged. The bundled identity emails are
+authored as theme-agnostic **fragments** composed with a theme at render time — their uploadable artifact
+is "fragment + chosen theme", exported via `?source=1&theme=…` (see
+[Bundled identity emails & themes](#bundled-identity-emails--themes)).
 
 Stack: Ruby 4.0 · [Liquid](https://github.com/Shopify/liquid) · [Sinatra](https://github.com/sinatra/sinatra)
 · Puma. Distributed as the multi-arch image `tinuvi/auth0-liquid-renderer`.
@@ -47,9 +51,12 @@ my_templates/
 - `_fixtures/<name>.json` supplies the default variables used when rendering `<name>.liquid`.
 - A fixture may include an optional `"_meta"` object (stripped before rendering) to set the index entry:
   ```json
-  { "_meta": { "title": "Welcome Email", "description": "Sent after email verification", "kind": "email" },
+  { "_meta": { "title": "Boas-vindas", "description": "Enviado após verificar o e-mail",
+               "kind": "email", "group": "Onboarding", "subject": "Bem-vindo(a) à {{ application.name }}" },
     "user": { "email": "user@example.com" }, "application": { "name": "Acme" } }
   ```
+  - `group` sets the previewer sidebar section (e.g. `Onboarding` · `Acesso à conta` · `Segurança`; anything
+    else falls under `Outros`). `subject` is a Liquid string rendered for the email-client chrome.
 
 ### Variable resolution (later wins)
 
@@ -65,12 +72,41 @@ my_templates/
 
 | Route | Purpose |
 |---|---|
-| `GET /` | Index of every template, grouped by kind, linking to its render page. |
-| `GET /render/<name>` | Render `<name>.liquid`. Scalar query params override top-level context keys (e.g. `?preferredLanguage=en-US`). |
+| `GET /` | The previewer: grouped sidebar + search, device/orientation toggles, theme switch, source view, and a live variable editor. |
+| `GET /render/<name>` | Render `<name>.liquid` into the composed email HTML (the previewer iframe body). Scalar query params override top-level context keys (e.g. `?preferredLanguage=en-US`). |
 | `POST /render/<name>` | Render with a JSON body that deep-overrides the context (arbitrary nested variables). |
-| `GET /render/<name>?_raw=1` | Return the rendered output as `text/plain` (view source / copy). |
+| `GET /render/<name>?theme=<quiet\|editorial\|structured>` | Compose a body fragment with the given theme (default `quiet`; ignored for full-document templates). Combines with the rows below. |
+| `GET /render/<name>?_raw=1` | Return the **rendered** output as `text/plain`. |
+| `GET /render/<name>?source=1` | Return the **composed, token-intact** document as `text/plain` — the per-theme `.liquid` to upload to Auth0. |
+| `GET\|POST /api/meta/<name>` | JSON `{subject, from_name, from_addr, to}` for the email-client chrome (subject is Liquid; sender derived from `application.name`). |
 
 An unknown template returns `404`; a Liquid error returns a visible error page, never a blank `200`.
+
+## Bundled identity emails & themes
+
+The bundled samples are 10 brand-neutral, monochrome **pt-BR** identity emails (`examples/*.liquid`)
+carrying real Auth0 Liquid tokens — OTP codes render as per-character cells via a genuine
+`{% assign … | split: "" %}` + `{% for %}` loop, and every type has a crafted inline SVG icon and a
+reskinnable monogram (no external images).
+
+Each email is authored as a theme-agnostic **body fragment** (no `<html>`/`<head>` of its own). At render
+time the server wraps it with one of three monochrome **themes** to form a complete document:
+
+- **Quiet** — centered, minimal, sans-serif, round icon chip, pill buttons (default).
+- **Editorial** — left-aligned, serif headline, a 3px top rule, square edges.
+- **Structured** — bordered card with a header tag chip and a dark alert band.
+
+A source that is already a full document (the Universal Login page, or any standalone `.liquid` you mount)
+is detected and rendered **as-is, unthemed** — so generic templates keep working verbatim.
+
+Because the on-disk email is a fragment, the verbatim-uploadable artifact is "fragment + chosen theme".
+Export it (tokens intact) with `?source=1`:
+
+```bash
+curl "http://localhost:9292/render/welcome_email?theme=structured&source=1"
+```
+
+The previewer's **Liquid** view shows exactly this, and **Copiar** copies it.
 
 ## Universal Login templates
 

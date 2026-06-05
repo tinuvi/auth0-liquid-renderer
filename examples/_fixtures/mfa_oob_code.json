@@ -1,7 +1,9 @@
 {
   "_meta": {
-    "title": "Verification Code for Email MFA",
-    "description": "One-time code for email-based multi-factor authentication.",
+    "title": "Código de verificação (MFA)",
+    "description": "Código único para MFA por e-mail.",
+    "group": "Acesso à conta",
+    "subject": "Seu código de verificação",
     "kind": "email"
   },
   "application": {

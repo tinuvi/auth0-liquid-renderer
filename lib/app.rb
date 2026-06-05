@@ -6,6 +6,7 @@ require "ipaddr"
 require_relative "template_repo"
 require_relative "renderer"
 require_relative "auth0_ulp"
+require_relative "email_theme"
 
 # The Sinatra app: the renderer's HTTP routes, rendering the renderer's OWN UI. All
 # HTTP lives here; the rendering logic stays in Renderer. A fresh TemplateRepo +
@@ -13,7 +14,12 @@ require_relative "auth0_ulp"
 # stay isolated.
 class App < Sinatra::Base
   EXAMPLES_DIR = File.expand_path("../examples", __dir__)
-  EXCLUDED_PARAMS = %w[name _raw splat captures].freeze
+  # `theme` and `source` select the rendering/export mode; they must never leak into
+  # the Liquid context as overrides.
+  EXCLUDED_PARAMS = %w[name _raw source theme splat captures].freeze
+  # Sidebar section order for the previewer; templates without a known group fall into
+  # a trailing "Outros" bucket (e.g. the Universal Login page).
+  GROUP_ORDER = ["Onboarding", "Acesso à conta", "Segurança"].freeze
 
   set :views, File.expand_path("ui", __dir__)
   # We always render our own pages (incl. errors), so turn off Sinatra's defaults
@@ -81,6 +87,16 @@ class App < Sinatra::Base
       truthy?(params["_raw"]) || params["_raw"] == ""
     end
 
+    # ?source=1 returns the composed, token-INTACT document (the per-theme .liquid you
+    # upload to Auth0), as opposed to ?_raw=1 which returns the rendered output.
+    def source?
+      truthy?(params["source"]) || params["source"] == ""
+    end
+
+    def selected_theme
+      EmailTheme.normalize(params["theme"])
+    end
+
     def h(text)
       Rack::Utils.escape_html(text.to_s)
     end
@@ -108,7 +124,12 @@ class App < Sinatra::Base
   end
 
   get "/" do
-    @entries = repo.entries
+    current = repo
+    @entries = current.entries
+    @group_order = GROUP_ORDER
+    @themes = EmailTheme::THEME_ORDER.map { |k| { "key" => k, "label" => EmailTheme::THEMES[k][:label] } }
+    # Per-template fixture variables (sans _meta) power the live Variáveis editor.
+    @fixture_vars = current.names.to_h { |n| [n, current.fixture(n)["vars"]] }
     erb :"index.html"
   end
 
@@ -121,6 +142,17 @@ class App < Sinatra::Base
     serve(params[:name], overrides, pre_error: error)
   end
 
+  # Email-client chrome for the previewer: the Liquid-rendered subject + derived
+  # sender + recipient. Kept in app.rb (the renderer does the Liquid; this is routing).
+  get "/api/meta/:name" do
+    api_meta(params[:name], query_overrides)
+  end
+
+  post "/api/meta/:name" do
+    overrides, _error = post_overrides
+    api_meta(params[:name], overrides)
+  end
+
   # Safety net: never emit a blank 200 — surface unexpected errors as a visible 500.
   error do
     status 500
@@ -129,34 +161,76 @@ class App < Sinatra::Base
 
   private
 
+  # Renders one template into the bare composed email document (the previewer iframe's
+  # body). ?source=1 returns the uploadable token-intact source; ?_raw=1 the rendered
+  # output as text/plain; a Liquid error becomes a visible 422 page, never a blank 200.
   def serve(name, overrides, pre_error: nil)
     return render_not_found(name) unless repo.exist?(name)
 
-    @name = name
-    @entry = repo.entries.find { |e| e[:name] == name } || { name: name, title: name, kind: "email" }
-    @context = renderer.context_for(name, overrides: overrides)
+    theme = selected_theme
+    return plain(EmailTheme.compose_source(theme, repo.source(name))) if source?
 
     if pre_error
       status 422
-      @error = pre_error
-      @output = nil
-      return raw? ? plain(pre_error) : erb(:"render.html")
+      return raw? ? plain(pre_error) : error_page(pre_error)
     end
 
     begin
-      output = renderer.render(name, overrides: overrides)
+      output = renderer.render(name, overrides: overrides, theme: theme)
     rescue Liquid::Error => e
       status 422
-      @error = e.message
-      @output = nil
-      return raw? ? plain("Liquid error: #{e.message}") : erb(:"render.html")
+      message = "Liquid error: #{e.message}"
+      return raw? ? plain(message) : error_page(message)
     end
 
     return plain(output) if raw?
 
-    @output = output
-    @error = nil
-    erb :"render.html"
+    content_type "text/html"
+    output
+  end
+
+  def api_meta(name, overrides)
+    return json_error(404, "Unknown template: #{name}") unless repo.exist?(name)
+
+    sender = renderer.sender_for(name, overrides: overrides)
+    json_response(
+      subject: subject_for(name, overrides),
+      from_name: sender[:name],
+      from_addr: sender[:addr],
+      to: email_for(name, overrides)
+    )
+  end
+
+  # The subject is itself Liquid; under strict mode a missing var would raise, so fall
+  # back to the unrendered subject string rather than 500 the chrome endpoint.
+  def subject_for(name, overrides)
+    renderer.render_subject(name, overrides: overrides)
+  rescue Liquid::Error
+    repo.fixture(name)["meta"]["subject"].to_s
+  end
+
+  def email_for(name, overrides)
+    user = renderer.context_for(name, overrides: overrides)["user"]
+    user.is_a?(Hash) ? user["email"].to_s : ""
+  end
+
+  def json_response(hash)
+    content_type "application/json"
+    JSON.generate(hash)
+  end
+
+  def json_error(code, message)
+    status code
+    json_response(error: message)
+  end
+
+  # A standalone HTML document so a render error is visible inside the previewer iframe.
+  def error_page(message)
+    content_type "text/html"
+    <<~HTML
+      <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Erro de renderização</title></head>
+      <body style="margin:0;padding:20px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#a40000;background:#fff;white-space:pre-wrap;word-break:break-word">#{h(message)}</body></html>
+    HTML
   end
 
   def render_not_found(name)

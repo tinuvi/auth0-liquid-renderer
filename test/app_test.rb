@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "json"
 require "tmpdir"
 require "rack/mock"
 require "app"
@@ -18,31 +19,57 @@ class AppTest < Minitest::Test
     @saved_env.each { |k, v| ENV[k] = v }
   end
 
-  def test_index_lists_templates_grouped_by_kind
+  def test_index_lists_templates_grouped_for_the_previewer
     res = @request.get("/")
     assert_equal 200, res.status
-    assert_includes res.body, "verify_email"
-    assert_includes res.body, "Email templates"
-    assert_includes res.body, "Universal Login"
+    assert_includes res.body, "Onboarding"     # group headings (embedded as data)
+    assert_includes res.body, "Segurança"
+    assert_includes res.body, "Boas-vindas"    # a template title
+    assert_includes res.body, "welcome_email"  # a template name
   end
 
-  def test_render_page_returns_200
+  def test_render_returns_the_composed_email_html
     res = @request.get("/render/welcome_email")
     assert_equal 200, res.status
+    assert_includes res.content_type, "text/html"
     assert_includes res.body, "Jane Doe"
+    assert_includes res.body, "<!doctype html>" # fragment wrapped into a full doc
   end
 
-  def test_raw_render_returns_plain_text
+  def test_raw_render_returns_rendered_plain_text
     res = @request.get("/render/welcome_email?_raw=1")
     assert_equal 200, res.status
     assert_includes res.content_type, "text/plain"
     assert_includes res.body, "Jane Doe"
+    refute_includes res.body, "{{ application.name }}" # tokens were rendered, not echoed
+  end
+
+  def test_source_returns_token_intact_uploadable_document
+    res = @request.get("/render/welcome_email?theme=quiet&source=1")
+    assert_equal 200, res.status
+    assert_includes res.content_type, "text/plain"
+    assert_includes res.body, "{{ application.name }}" # tokens preserved verbatim
+    assert_includes res.body, "{% if user.name %}"
+    assert_includes res.body, "--maxw:484px"           # composed with the chosen theme
+  end
+
+  def test_theme_param_selects_the_stylesheet
+    structured = @request.get("/render/welcome_email?theme=structured&_raw=1").body
+    quiet = @request.get("/render/welcome_email?theme=quiet&_raw=1").body
+    assert_includes structured, "border-radius:14px"
+    refute_includes quiet, "border-radius:14px"
+  end
+
+  def test_unknown_theme_does_not_error
+    res = @request.get("/render/welcome_email?theme=bogus")
+    assert_equal 200, res.status
+    assert_includes res.body, "--maxw:484px" # fell back to quiet
   end
 
   def test_query_param_overrides_top_level_key
-    res = @request.get("/render/welcome_email?friendly_name=QueryName&_raw=1")
+    res = @request.get("/render/welcome_email?support_url=https://override.test/help&_raw=1")
     assert_equal 200, res.status
-    assert_includes res.body, "QueryName"
+    assert_includes res.body, "https://override.test/help"
   end
 
   def test_post_json_body_deep_overrides_context
@@ -51,6 +78,30 @@ class AppTest < Minitest::Test
                         input: body, "CONTENT_TYPE" => "application/json")
     assert_equal 200, res.status
     assert_includes res.body, "Posted Name"
+  end
+
+  def test_api_meta_returns_subject_sender_and_recipient
+    res = @request.get("/api/meta/user_invitation")
+    assert_equal 200, res.status
+    assert_includes res.content_type, "application/json"
+    data = JSON.parse(res.body)
+    assert_equal "Alex Carter convidou você para a Acme Engenharia", data["subject"]
+    assert_equal "Acme", data["from_name"]
+    assert_equal "nao-responder@acme.com", data["from_addr"]
+    assert_equal "newuser@example.com", data["to"]
+  end
+
+  def test_api_meta_reflects_overrides
+    body = JSON.dump("inviter" => { "name" => "Maria" })
+    res = @request.post("/api/meta/user_invitation",
+                        input: body, "CONTENT_TYPE" => "application/json")
+    assert_equal 200, res.status
+    assert_includes JSON.parse(res.body)["subject"], "Maria convidou você"
+  end
+
+  def test_api_meta_unknown_template_is_404
+    res = @request.get("/api/meta/does_not_exist")
+    assert_equal 404, res.status
   end
 
   def test_unknown_template_returns_404

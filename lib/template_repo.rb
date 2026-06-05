@@ -48,7 +48,9 @@ class TemplateRepo
     { "vars" => data.except("_meta"), "meta" => meta }
   end
 
-  # Index rows for the UI: [{ name:, title:, description:, kind: }], sorted by name.
+  # Index rows for the UI: [{ name:, title:, description:, kind:, group:, subject: }],
+  # sorted by name. `group` drives the previewer's sidebar sections; `subject` (a
+  # Liquid string) feeds the email-client chrome — both optional, from _meta.
   def entries
     names.map do |name|
       meta = fixture(name)["meta"]
@@ -56,7 +58,9 @@ class TemplateRepo
         name: name,
         title: meta["title"] || humanize(name),
         description: meta["description"],
-        kind: meta["kind"] || derive_kind(name)
+        kind: meta["kind"] || derive_kind(name),
+        group: meta["group"],
+        subject: meta["subject"]
       }
     end
   end

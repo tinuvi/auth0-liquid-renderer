@@ -1,26 +1,35 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Suspicious sign-in blocked</title>
-  </head>
-  <body style="margin:0;background:#f5f6fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e">
-    <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:8px;padding:32px">
-      <img src="{{ application.logo_uri }}" alt="{{ application.name }}" height="40" />
-      <h1 style="font-size:20px">We blocked a suspicious sign-in</h1>
-      <p>Hi {{ user.email }},</p>
-      <p>We blocked a login attempt to your {{ application.name }} account from an unrecognized device
-         {% if user.city %}near {{ user.city }}, {{ user.country }}{% endif %}
-         {% if user.source_ip %}(IP {{ user.source_ip }}){% endif %}.</p>
-      <p>If this was you, unblock your account:</p>
-      <p style="margin:28px 0">
-        <a href="{{ url }}"
-           style="background:#635dff;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">
-          Unblock my account
-        </a>
-      </p>
-      <p style="color:#666;font-size:13px">If this wasn't you, contact
-        <a href="{{ support_url }}">support</a> right away.</p>
+<div class="eml-outer">
+  <div class="eml-card">
+    <div class="eml-pre">Uma tentativa de acesso foi bloqueada.</div>
+    <div class="eml-head">
+      <div class="eml-headl">
+        <svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+        <span class="eml-brand">{{ application.name }}</span>
+      </div>
+      <span class="eml-tag">Segurança</span>
     </div>
-  </body>
-</html>
+    <div class="eml-pad">
+      <div class="eml-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%" aria-hidden="true"><path d="M12 3 5 5.6v5.2c0 4.2 2.9 7.6 7 9.2 4.1-1.6 7-5 7-9.2V5.6L12 3Z"/><path d="m9.6 9.6 4.8 4.8M14.4 9.6l-4.8 4.8"/></svg></div>
+      <div class="eml-eyebrow">Alerta de segurança</div>
+      <h1 class="eml-h1">Bloqueamos um acesso suspeito</h1>
+      <div class="eml-alert">Por precaução, bloqueamos uma tentativa de login com características diferentes das suas.</div>
+      <p class="eml-p">Veja os detalhes da tentativa:</p>
+      <div class="eml-meta">
+        {% if user.city %}<div class="eml-meta-row"><span class="eml-meta-k">Local</span><span class="eml-meta-v">{{ user.city }}{% if user.country %}, {{ user.country }}{% endif %}</span></div>{% endif %}
+        {% if user.source_ip %}<div class="eml-meta-row"><span class="eml-meta-k">Endereço IP</span><span class="eml-meta-v">{{ user.source_ip }}</span></div>{% endif %}
+        <div class="eml-meta-row"><span class="eml-meta-k">Conta</span><span class="eml-meta-v">{{ user.email }}</span></div>
+      </div>
+      <p class="eml-p">Se foi você, libere o acesso para continuar. Se não reconhece esta atividade, redefina sua senha o quanto antes.</p>
+      <div class="eml-cta"><a class="eml-btn" href="{{ url }}">Foi você — liberar acesso</a></div>
+      <p class="eml-note">Se o botão não funcionar, copie e cole este endereço no seu navegador:</p>
+      <div class="eml-fallback">{{ url }}</div>
+    </div>
+    <hr class="eml-divider">
+    <div class="eml-foot">
+      <div class="eml-foot-brand"><svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg><span>{{ application.name }}</span></div>
+      <p>Este e-mail foi enviado para <span class="eml-strong">{{ user.email }}</span>.</p>
+      {% if support_url %}<p>Precisa de ajuda? <a href="{{ support_url }}">Fale com o suporte</a>.</p>{% endif %}
+      <p>Mensagem automática de {{ application.name }}. Por segurança, não responda a este e-mail.</p>
+    </div>
+  </div>
+</div>
