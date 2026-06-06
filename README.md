@@ -27,10 +27,14 @@ docker run --rm -p 9292:9292 tinuvi/auth0-liquid-renderer
 # open http://localhost:9292/
 ```
 
-Preview **your own** templates by mounting a folder at `/templates`:
+Preview **your own** templates by mounting a folder and pointing `TEMPLATES_DIR` at it.
+`TEMPLATES_DIR` is required — without it the bundled samples are served, not your files:
 
 ```bash
-docker run --rm -p 9292:9292 -v "$PWD/my_templates:/templates:ro" tinuvi/auth0-liquid-renderer
+docker run --rm -p 9292:9292 \
+  -e TEMPLATES_DIR=/templates \
+  -v "$PWD/my_templates:/templates:ro" \
+  tinuvi/auth0-liquid-renderer
 ```
 
 Editing a `.liquid` file and refreshing the browser shows the change immediately — files are read fresh on
@@ -38,7 +42,7 @@ every request, so no restart is needed.
 
 ## Template folder conventions
 
-Inside the mounted directory (`TEMPLATES_DIR`, default `/templates`):
+Inside the directory you point `TEMPLATES_DIR` at (e.g. `/templates`):
 
 ```
 my_templates/
@@ -140,7 +144,7 @@ rendered in the previewer with browser chrome (an address bar) rather than the e
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `TEMPLATES_DIR` | `/templates` | Directory scanned for `*.liquid` + `_fixtures/`. Falls back to the bundled samples if empty/missing. |
+| `TEMPLATES_DIR` | _(none)_ | Directory scanned for `*.liquid` + `_fixtures/`. **Set it** (e.g. `/templates`) to serve your own templates; if unset, missing, or empty it falls back to the bundled `examples/`. |
 | `PORT` | `9292` | Listen port. |
 | `BIND` | `0.0.0.0` | Bind address. |
 | `STRICT_VARIABLES` | off | When set, render in Liquid strict-variables mode so undefined references error (catches typos). |
@@ -172,6 +176,8 @@ the `.liquid` files and their fixtures):
 services:
   auth0-templates:
     image: tinuvi/auth0-liquid-renderer:latest
+    environment:
+      - TEMPLATES_DIR=/templates   # required, else the bundled samples are served
     volumes:
       - ./path/to/auth0_templates:/templates:ro
     ports:
