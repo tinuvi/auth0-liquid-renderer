@@ -45,6 +45,7 @@ Follow these end-to-end on every change. Run everything through Docker Compose â
 
 ## Documentation
 
+- Update `CHANGELOG.md` only when `./lib/` (the library source) changes, but not including the tests folder. Use the active [X.Y.Z] heading and Added / Changed / Fixed / Removed subsections. Skip it for repo-tooling or sample-project edits.
 - Update `README.md` when env vars (`TEMPLATES_DIR`, `PORT`, `BIND`, `STRICT_VARIABLES`, `AUTH0_ULP_CDN_VERSION`, `ALLOWED_HOSTS`), filesystem conventions, HTTP routes, or the consumer compose snippet change.
 - Do not create new top-level `*.md` docs unless explicitly asked.
 
