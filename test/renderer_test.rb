@@ -25,7 +25,8 @@ class RendererTest < Minitest::Test
     "stolen_credentials" => ["jane.doe@example.com", "BREACH-654"],
     "mfa_oob_code" => ["jane.doe@example.com", "Código de acesso"],
     "user_invitation" => ["newuser@example.com", "Alex Carter", "Acme Engenharia", "INVITE-987"],
-    "universal_login" => ["Acme", "Acesse sua conta com segurança", "Bem-vindo de volta", "Continuar"]
+    "universal_login" => ["Acme", "Acesse sua conta com segurança", "Bem-vindo de volta", "Continuar"],
+    "error_page" => ["Acme", "access_denied", "Acesso negado", "a1b2c3d4e5f6a7b8"]
   }.freeze
 
   def setup
@@ -34,7 +35,7 @@ class RendererTest < Minitest::Test
   end
 
   def test_every_example_is_covered_and_renders_without_error
-    assert_equal 12, @repo.names.length, "expected 12 bundled examples"
+    assert_equal 13, @repo.names.length, "expected 13 bundled examples"
     @repo.names.each do |name|
       output = @renderer.render(name)
       refute_empty output.strip, "#{name} rendered empty"
@@ -129,6 +130,47 @@ class RendererTest < Minitest::Test
       overridden = renderer.render("t", overrides: { "application" => { "name" => "OverrideCo" } })
       assert_equal "<!doctype html><p>name=OverrideCo tenant=acme</p>", overridden
     end
+  end
+
+  def test_error_page_renders_default_scenario_as_unthemed_full_document
+    output = @renderer.render("error_page", theme: "structured")
+    assert_includes output, "<!doctype html>"
+    refute_includes output, "eml-outer"            # not wrapped in an email theme
+    refute_includes output, "--ink-900"            # no email-theme stylesheet injected
+    assert_includes output, "access_denied"        # the error-code chip
+    assert_includes output, "Acesso negado"        # the {% case error %} branch for that code
+  end
+
+  # The crux of the gap report: the error-page variables must resolve from the built-in
+  # defaults even with NO fixture, so a mounted error template is not stuck on the blank
+  # fallback. (`connection` already existed; the other five are the surface contract.)
+  def test_error_page_variables_resolve_from_defaults_without_a_fixture
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "err.liquid"),
+                 "<!doctype html><p>{{ error }}|{{ error_description }}|{{ tracking }}|" \
+                 "{{ lang }}|{{ client_id }}|{{ connection }}</p>")
+      output = Renderer.new(repo: TemplateRepo.new(dir)).render("err")
+      assert_includes output, "access_denied"
+      assert_includes output, "do not have permission"
+      assert_includes output, "acme-tracking-id"
+      assert_includes output, "Username-Password-Authentication"
+      assert_includes output, "acme-client-id"
+    end
+  end
+
+  def test_error_page_case_switches_on_the_error_code
+    output = @renderer.render("error_page", overrides: { "error" => "server_error" })
+    assert_includes output, "server_error"      # chip reflects the override
+    assert_includes output, "Erro no servidor"  # the matching branch
+    refute_includes output, "Acesso negado"     # the default branch is gone
+  end
+
+  # Auth0 documents that error variables (request-influenced) must be escaped to avoid XSS;
+  # the bundled template models that, so a script payload must arrive inert.
+  def test_error_page_escapes_request_influenced_variables
+    output = @renderer.render("error_page", overrides: { "error_description" => "<script>alert(1)</script>" })
+    assert_includes output, "&lt;script&gt;alert(1)&lt;/script&gt;"
+    refute_includes output, "<script>alert(1)</script>"
   end
 
   def test_context_for_resolves_without_rendering

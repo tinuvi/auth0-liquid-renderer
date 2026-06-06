@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-06-06
+
+### Added
+
+- **Custom error page** modeled as a first-class surface. Built-in Auth0-shaped defaults for the tenant
+  error page's variable contract (`error`, `error_description`, `tracking`, `connection`, `client_id`,
+  `lang`) so an error template renders a real scenario without a fixture; a brand-neutral bundled
+  `error_page.liquid` that switches copy per code via `{% case error %}` and escapes every request-derived
+  variable; a new `error_page` kind (auto-detected from an `error_page`/`error` filename, or set via
+  `_meta.kind`) previewed with browser chrome under a new "Páginas de erro" sidebar group. Scenarios are
+  switched via the Variáveis editor or per-request overrides (e.g. `?error=too_many_requests`).
+
+## [0.2.0] - 2026-06-06
+
+### Added
+
+- Preview the New Universal Login widget logo from page-template branding context: the injected widget
+  resolves `organization.branding.logo_url` (org-context login) → `branding.logo_url` (tenant) → the
+  monogram fallback, riding the existing merge order (defaults < fixture < override) with no new env var or
+  param. `branding` / `organization.branding` were added to the built-in default context (brand-neutral,
+  empty logo) so the lookup is defined under `STRICT_VARIABLES` and surfaces in the Variáveis editor; the
+  default preview (empty logo → monogram) is unchanged.
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

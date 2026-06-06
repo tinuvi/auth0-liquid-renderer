@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "title": "Página de erro",
+    "description": "Página de erro personalizada do tenant (error_page.html).",
+    "group": "Páginas de erro",
+    "kind": "error_page"
+  },
+  "application": {
+    "name": "Acme"
+  },
+  "client_id": "acme-client-id",
+  "connection": "Username-Password-Authentication",
+  "lang": "pt-BR",
+  "error": "access_denied",
+  "error_description": "Você não tem permissão para acessar este aplicativo.",
+  "tracking": "a1b2c3d4e5f6a7b8"
+}

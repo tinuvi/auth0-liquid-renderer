@@ -1,9 +1,9 @@
 ---
-description: Validate Auth0 Liquid templates (email templates + the New Universal Login page) against Auth0's real requirements and variable model. Project-agnostic — you supply where the templates live.
+description: Validate Auth0 Liquid templates (email templates + the New Universal Login page + the tenant custom error page) against Auth0's real requirements and variable model. Project-agnostic — you supply where the templates live.
 argument-hint: [path/glob to the .liquid templates, or a note on where they live]
 ---
 
-Validate Auth0 Liquid templates in this project and report, per template, whether it will work when uploaded to Auth0. Cover both kinds: **email templates** and the **New Universal Login (ULP) page template**.
+Validate Auth0 Liquid templates in this project and report, per template, whether it will work when uploaded to Auth0. Cover all three kinds: **email templates**, the **New Universal Login (ULP) page template**, and the tenant **custom error page**.
 
 This command is agnostic to repo layout. The operator tells you where the templates are via `$ARGUMENTS` (a path, a glob, or a description). If `$ARGUMENTS` is empty, ask once for the location and which kinds to check, then proceed. Read the actual files — do not assume a structure.
 
@@ -11,7 +11,7 @@ Goal is a **verdict, not a rewrite**. Don't edit templates unless explicitly ask
 
 ## Method
 
-1. **Discover & classify.** Find the `.liquid` files the operator pointed at. Classify each as ULP (contains `auth0:head`/`auth0:widget`, or is a full login page) or email. For emails, map the file to an Auth0 template name (see below). Note whether each file is a complete HTML document or a bare body fragment — this decides what actually gets uploaded.
+1. **Discover & classify.** Find the `.liquid` files the operator pointed at. Classify each as ULP (contains `auth0:head`/`auth0:widget`, or is a full login page), **custom error page** (a full document, no ULP tokens, named `error_page`/`error` or reading `error`/`tracking`), or email. For emails, map the file to an Auth0 template name (see below). Note whether each file is a complete HTML document or a bare body fragment — this decides what actually gets uploaded.
 2. **Check against the rules** for its kind (sections below).
 3. **Resolve every variable** the template references against Auth0's supplied context. This is the crux — see the heuristic.
 4. **Report** with a per-template verdict.
@@ -42,6 +42,16 @@ Tenant prerequisites (not template defects, but report them): a **Custom Domain 
 - `support_url` is **not** Auth0-supplied. If a template uses it, it must be guarded (`{% if support_url %}`) or hardcoded — otherwise it renders empty.
 - **Fragment vs. full document:** if the on-disk file is a body fragment styled by an external wrapper/theme, the uploadable artifact is the *composed* output, not the raw file. Validate the thing that actually gets uploaded, and warn if someone might upload the bare fragment (it arrives unstyled).
 
+## Custom error page — hard rules
+
+The tenant error page (`error_page.html`) is a standalone surface — not an email, not ULP.
+
+- It is a **full HTML document**, uploaded as the `error_page.html` field of tenant settings (Management API, or Terraform `auth0_tenant.error_page.html`). It is set tenant-wide, not per template name.
+- Auth0 supplies **exactly six** top-level variables: `error` (an error CODE string, e.g. `access_denied`), `error_description`, `tracking` (internal-log id), `connection`, `client_id`, `lang`. Flag any other top-level variable as unsupplied (it renders empty). `show_log_link` / `url` are page **config**, not Liquid context — flag if referenced as variables.
+- The available variables **vary by error type** — a template must not assume all six are present. Guard or `| default:` anything beyond `error`.
+- **Escaping is mandatory:** `error`, `error_description`, and `connection` are request-influenced — Auth0 requires `escape` (and `strip_html` where HTML could appear) to prevent XSS. Flag any unescaped use of these.
+- Does **not** render for errors raised inside the Classic Login widget (e.g. expired password-reset links) — report as a coverage caveat, not a defect.
+
 ## The heuristic that matters most
 
 **Auth0's published variable table is not exhaustive — absence from it does not mean a variable is unavailable.** For example, `url` works in `stolen_credentials` (breach emails contain a password-reset link) and in `user_invitation` (the accept link), yet neither is listed in the docs' per-template table. So:
@@ -54,6 +64,7 @@ Tenant prerequisites (not template defects, but report them): a **Custom Domain 
 Auth0 docs render as Markdown if you **append `.md`** to the URL — fetch that, and follow internal links with `.md` too:
 
 - ULP templates: `https://auth0.com/docs/customize/login-pages/universal-login/customize-templates.md`
+- Custom error pages (variable list + escaping): `https://auth0.com/docs/customize/login-pages/custom-error-pages.md`
 - Email overview: `https://auth0.com/docs/customize/email/email-templates.md`
 - Email supported Liquid syntax (per-template variables): `https://auth0.com/docs/customize/email/email-templates/supported-liquid-syntax.md`
 - Customize email templates (redirect / `result_url`): `https://auth0.com/docs/customize/email/email-templates/customize-email-templates.md`

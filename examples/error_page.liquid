@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="{{ lang | default: 'pt-BR' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>{{ application.name }} · Algo deu errado</title>
+<style>
+:root{--ink:#15151a;--ink2:#56565e;--ink3:#8d8d96;--line:#e7e7ec;--soft:#f4f4f6;--paper:#ffffff;--canvas:#ebebed;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;font-family:var(--sans);color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased}
+.err{width:100%;max-width:480px}
+.err-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:44px 40px 32px;text-align:center}
+.err-brand{display:flex;align-items:center;justify-content:center;gap:9px;color:var(--ink);margin-bottom:30px}
+.err-brand svg{width:26px;height:26px}
+.err-brand b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.err-icon{width:64px;height:64px;border-radius:50%;background:var(--soft);color:var(--ink);display:flex;align-items:center;justify-content:center;margin:0 auto 22px}
+.err-icon svg{width:30px;height:30px}
+.err-chip{display:inline-block;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--ink2);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px 12px;margin-bottom:16px}
+.err-h1{font-size:24px;line-height:1.22;font-weight:700;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+.err-p{font-size:15px;line-height:1.6;color:var(--ink2);margin:0 auto 8px;max-width:360px;text-wrap:pretty}
+.err-desc{font-size:13.5px;line-height:1.55;color:var(--ink3);margin:14px auto 0;max-width:360px}
+.err-cta{margin:28px 0 4px}
+.err-btn{display:inline-block;background:var(--ink);color:var(--paper);text-decoration:none;font-size:15px;font-weight:600;padding:13px 34px;border-radius:10px}
+.err-meta{margin:28px 0 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;text-align:left}
+.err-row{display:flex;justify-content:space-between;gap:16px;padding:10px 15px;border-top:1px solid var(--soft);font-size:13px}
+.err-row:first-child{border-top:0}
+.err-k{color:var(--ink3)}
+.err-v{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:12px;text-align:right;word-break:break-all}
+.err-foot{font-size:12px;line-height:1.6;color:var(--ink3);margin-top:22px}
+</style>
+</head>
+<body>
+<main class="err">
+<div class="err-card">
+<div class="err-brand">
+<svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1.2" y="1.2" width="25.6" height="25.6" rx="7" stroke="currentColor" stroke-width="1.5"/><rect x="9.4" y="9.4" width="9.2" height="9.2" rx="2" transform="rotate(45 14 14)" fill="currentColor"/></svg>
+<b>{{ application.name }}</b>
+</div>
+<div class="err-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 10v4.4"/><circle cx="12" cy="17.2" r=".9" fill="currentColor" stroke="none"/></svg></div>
+<span class="err-chip">{{ error | escape | default: '—' }}</span>
+{%- case error -%}
+{%- when 'access_denied' -%}
+<h1 class="err-h1">Acesso negado</h1>
+<p class="err-p">Você não tem permissão para acessar este aplicativo. Se acredita que isso é um engano, fale com o administrador da sua conta.</p>
+{%- when 'login_required' -%}
+<h1 class="err-h1">Sessão necessária</h1>
+<p class="err-p">Sua sessão expirou ou ainda não foi iniciada. Faça login novamente para continuar.</p>
+{%- when 'too_many_requests' -%}
+<h1 class="err-h1">Muitas tentativas</h1>
+<p class="err-p">Detectamos um número incomum de solicitações vindas de você. Aguarde alguns instantes e tente novamente.</p>
+{%- when 'invalid_request' -%}
+<h1 class="err-h1">Solicitação inválida</h1>
+<p class="err-p">Não foi possível processar esta solicitação. Volte e tente iniciar o fluxo novamente.</p>
+{%- when 'unauthorized' -%}
+<h1 class="err-h1">Não autorizado</h1>
+<p class="err-p">Não foi possível validar suas credenciais para concluir esta ação.</p>
+{%- when 'server_error' -%}
+<h1 class="err-h1">Erro no servidor</h1>
+<p class="err-p">Algo deu errado do nosso lado. Já estamos verificando — tente novamente em instantes.</p>
+{%- else -%}
+<h1 class="err-h1">Algo deu errado</h1>
+<p class="err-p">Não foi possível concluir o que você pediu. Tente novamente ou volte ao login.</p>
+{%- endcase -%}
+{%- if error_description -%}<p class="err-desc">{{ error_description | escape }}</p>{%- endif -%}
+<div class="err-cta"><a class="err-btn" href="https://{{ tenant | default: 'acme' }}.auth0.com/u/login">Voltar ao login</a></div>
+<div class="err-meta">
+{%- if connection -%}<div class="err-row"><span class="err-k">Conexão</span><span class="err-v">{{ connection | escape }}</span></div>{%- endif -%}
+{%- if client_id -%}<div class="err-row"><span class="err-k">Aplicativo</span><span class="err-v">{{ client_id | escape }}</span></div>{%- endif -%}
+{%- if lang -%}<div class="err-row"><span class="err-k">Idioma</span><span class="err-v">{{ lang | escape }}</span></div>{%- endif -%}
+<div class="err-row"><span class="err-k">ID de rastreio</span><span class="err-v">{{ tracking | escape | default: '—' }}</span></div>
+</div>
+<p class="err-foot">Ao falar com o suporte, informe o ID de rastreio acima para localizarmos este erro nos registros.</p>
+</div>
+</main>
+</body>
+</html>

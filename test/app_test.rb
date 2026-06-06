@@ -26,6 +26,8 @@ class AppTest < Minitest::Test
     assert_includes res.body, "Segurança"
     assert_includes res.body, "Boas-vindas"    # a template title
     assert_includes res.body, "welcome_email"  # a template name
+    assert_includes res.body, "Páginas de erro" # the custom-error-page group heading
+    assert_includes res.body, "error_page"      # the bundled error page
   end
 
   def test_index_ships_responsive_device_and_zoom_controls
@@ -110,6 +112,22 @@ class AppTest < Minitest::Test
   def test_api_meta_unknown_template_is_404
     res = @request.get("/api/meta/does_not_exist")
     assert_equal 404, res.status
+  end
+
+  def test_render_error_page_returns_unthemed_full_document
+    res = @request.get("/render/error_page")
+    assert_equal 200, res.status
+    assert_includes res.content_type, "text/html"
+    assert_includes res.body, "<!doctype html>"
+    assert_includes res.body, "access_denied" # default scenario from the fixture
+    refute_includes res.body, "eml-outer"     # not wrapped in an email theme
+  end
+
+  def test_error_page_scenario_switches_via_query_override
+    res = @request.get("/render/error_page?error=too_many_requests&_raw=1")
+    assert_equal 200, res.status
+    assert_includes res.body, "Muitas tentativas" # the too_many_requests branch
+    refute_includes res.body, "Acesso negado"     # not the default branch
   end
 
   def test_unknown_template_returns_404
