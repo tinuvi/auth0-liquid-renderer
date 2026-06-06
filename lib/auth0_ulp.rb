@@ -16,9 +16,10 @@
 # Claude Design prototype. CSS in the injected/page styles uses single `{`/`}`, which
 # Liquid ignores (only `{{` / `{%` trigger it).
 #
-# The injected HTML is a STATIC VISUAL APPROXIMATION for layout preview only — a clean
+# The injected HTML is a VISUAL APPROXIMATION for layout preview only — a clean
 # monochrome login widget that fits the bundled split-screen page. It will not match
-# Auth0's real, tenant-specific widget pixel-for-pixel.
+# Auth0's real, tenant-specific widget pixel-for-pixel. Its few dynamic bits resolve
+# from context: the subtitle (org/app name) and the logo (branding, see WIDGET_HTML).
 module Auth0Ulp
   HEAD_TOKEN   = /\{%-?\s*auth0:head\s*-?%\}/
   WIDGET_TOKEN = /\{%-?\s*auth0:widget\s*-?%\}/
@@ -33,7 +34,8 @@ module Auth0Ulp
   # serves the real one at runtime; this is a representative monochrome approximation).
   WIDGET_CSS = <<~CSS
     .w-card{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif}
-    .w-logo{width:46px;height:46px;margin:0 auto 22px;color:#15151a}.w-logo svg{width:46px;height:46px}
+    .w-logo{display:flex;align-items:center;justify-content:center;min-height:46px;margin:0 0 22px;color:#15151a}
+    .w-logo svg{width:46px;height:46px}.w-logo img{max-width:180px;max-height:52px;object-fit:contain}
     .w-title{font-size:23px;font-weight:700;letter-spacing:-.02em;text-align:center;color:#15151a;margin:0 0 7px}
     .w-sub{font-size:14px;color:#6f6f78;text-align:center;margin:0 0 26px}
     .w-label{font-size:12.5px;font-weight:600;color:#3b3b42;margin:0 0 6px;display:block}
@@ -54,10 +56,18 @@ module Auth0Ulp
   HEAD_HTML = %(<style id="auth0-head-approx">#{WIDGET_CSS}</style>).freeze
 
   # What `{%- auth0:widget -%}` injects in preview. Carries Liquid (resolved in the
-  # same render pass) so the subtitle reflects the org/app name.
+  # same render pass) so the subtitle reflects the org/app name and the logo reflects
+  # branding. The real widget logo comes from tenant/org branding the renderer never
+  # sees, so it is sourced from context here, mirroring Auth0's precedence: an
+  # organization-branding logo overrides the tenant `branding.logo_url`. Both are real
+  # New-Universal-Login page-template variables; supply either via fixture/override to
+  # preview a logo-bearing widget. Empty (the default) falls back to the monogram.
+  # `!= blank` is required because "" is TRUTHY in Liquid; `escape` guards the URL going
+  # into the attribute (Liquid does not auto-escape).
   WIDGET_HTML = <<~HTML.freeze
     <div class="w-card">
-    <div class="w-logo">#{MONO}</div>
+    {%- assign w_logo = organization.branding.logo_url | default: branding.logo_url -%}
+    <div class="w-logo">{% if w_logo != blank %}<img class="w-logo-img" src="{{ w_logo | escape }}" alt="{{ application.name | escape }}">{% else %}#{MONO}{% endif %}</div>
     <h1 class="w-title">Bem-vindo de volta</h1>
     <p class="w-sub">Entre na sua conta {% if organization.display_name %}{{ organization.display_name }}{% else %}{{ application.name }}{% endif %}</p>
     <label class="w-label">E-mail</label>

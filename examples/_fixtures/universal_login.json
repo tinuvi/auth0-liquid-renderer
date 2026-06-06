@@ -10,6 +10,9 @@
     "name": "Acme",
     "id": "acme-app-id"
   },
+  "branding": {
+    "logo_url": ""
+  },
   "prompt": {
     "name": "login"
   },
