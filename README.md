@@ -140,6 +140,27 @@ rendered in the previewer with browser chrome (an address bar) rather than the e
 > will not match pixel-for-pixel. The `.liquid` source (and `?source=1`) keeps the real `auth0:head` /
 > `auth0:widget` tokens verbatim, so the file stays uploadable to `auth0_branding`.
 
+### Previewing the widget logo
+
+The real widget shows a brand logo that comes from **tenant branding**, which the renderer never sees (it reads
+only your `.liquid` + `_fixtures/`, never calling Auth0). So the injected widget reads its logo from the same
+**`branding.logo_url`** context variable Auth0 supplies to a New Universal Login page template — set it to preview
+a logo-bearing widget and verify how the widget's height and your surrounding chrome line up:
+
+```bash
+# query string (a scalar can't nest, so POST JSON for branding.logo_url):
+curl -X POST http://localhost:9292/render/universal_login \
+  -H 'content-type: application/json' \
+  -d '{"branding":{"logo_url":"https://cdn.example.com/acme.svg"}}'
+```
+
+Or set it in `_fixtures/universal_login.json` (it's already present, empty, so it shows up in the previewer's
+**Variáveis** editor — paste a URL there and the logo appears live). The precedence mirrors Auth0: an
+**`organization.branding.logo_url`** (org-context login) overrides `branding.logo_url`; when both are empty the
+widget falls back to its monogram, so the default preview is unchanged. (Auth0's New Universal Login also resolves
+a `branding_theme.widget.logo_url`, but that is a Terraform/Management-API setting, **not** a page-template Liquid
+variable, so it can't be modeled here — use `branding.logo_url` to stand in for it.)
+
 ## Environment variables
 
 | Variable | Default | Purpose |
