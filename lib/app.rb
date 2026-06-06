@@ -19,7 +19,7 @@ class App < Sinatra::Base
   EXCLUDED_PARAMS = %w[name _raw source theme splat captures].freeze
   # Sidebar section order for the previewer; templates without a known group fall into
   # a trailing "Outros" bucket (e.g. the Universal Login page).
-  GROUP_ORDER = ["Onboarding", "Acesso à conta", "Segurança", "Universal Login"].freeze
+  GROUP_ORDER = ["Onboarding", "Acesso à conta", "Segurança", "Universal Login", "Páginas de erro"].freeze
 
   set :views, File.expand_path("ui", __dir__)
   # We always render our own pages (incl. errors), so turn off Sinatra's defaults

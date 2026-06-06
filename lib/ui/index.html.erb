@@ -271,7 +271,8 @@
       enrollment_email: ic(SHIELD + '<path d="M12 9v5M9.5 11.5h5"/>'),
       blocked_account: ic(SHIELD + '<path d="m9.6 9.6 4.8 4.8M14.4 9.6l-4.8 4.8"/>'),
       stolen_credentials: ic('<path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"/><path d="M12 10v4"/><circle cx="12" cy="16.8" r=".85" fill="currentColor" stroke="none"/>'),
-      universal_login: ic('<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M3 9h18"/><circle cx="6" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="8" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.7"/><path d="M9.2 17a2.8 2.8 0 0 1 5.6 0"/>')
+      universal_login: ic('<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M3 9h18"/><circle cx="6" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="8" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="12" cy="13" r="1.7"/><path d="M9.2 17a2.8 2.8 0 0 1 5.6 0"/>'),
+      error_page: ic('<rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M3 9h18"/><circle cx="6" cy="6.75" r=".6" fill="currentColor" stroke="none"/><circle cx="8" cy="6.75" r=".6" fill="currentColor" stroke="none"/><path d="M12 11.5v3"/><circle cx="12" cy="16.6" r=".75" fill="currentColor" stroke="none"/>')
     };
     function monogram() {
       return '<svg viewBox="0 0 28 28" width="28" height="28" fill="none" aria-hidden="true">' +
@@ -397,11 +398,15 @@
       return out;
     }
     function changedCount() { return Object.keys(overrides[key] || {}).length; }
-    function isPageKind() { return (BYNAME[key] || {}).kind === "universal_login"; }
+    // Full hosted pages (ULP + the tenant custom error page) get browser chrome and skip
+    // email composition; emails get the email-client chrome.
+    function kindOf() { return (BYNAME[key] || {}).kind; }
+    function isErrorPage() { return kindOf() === "error_page"; }
+    function isPageKind() { return kindOf() === "universal_login" || isErrorPage(); }
     function pageUrl() {
       var ov = overrides[key] || {};
       var t = ov.tenant || (FIXVARS[key] && FIXVARS[key].tenant) || "acme";
-      return t + ".auth0.com/u/login";
+      return t + ".auth0.com" + (isErrorPage() ? "/u/error" : "/u/login");
     }
     function isResp() { return device === "responsive"; }
 
@@ -529,7 +534,7 @@
     function sourceHTML() {
       return '<div class="source"><div class="source-bar">' +
         '<span class="nm"><b>' + esc(key) + ".liquid</b>  ·  " +
-        (isPageKind() ? "página Universal Login" : "tema " + esc(themeLabel(theme))) + "</span>" +
+        (isErrorPage() ? "página de erro" : isPageKind() ? "página Universal Login" : "tema " + esc(themeLabel(theme))) + "</span>" +
         '<div class="spacer"></div>' +
         '<button class="copy-btn" data-act="copy"><span>' + (copied ? UI.check : UI.copy) + "</span>" +
         "<span>" + (copied ? "Copiado" : "Copiar") + "</span></button></div>" +

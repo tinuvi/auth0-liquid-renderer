@@ -1,7 +1,7 @@
 # Auth0 Liquid Renderer
 
-A small, local preview server for **Auth0 Liquid templates** — both **email templates** and the
-**New Universal Login page template**. Point it at a folder of `.liquid` files, open
+A small, local preview server for **Auth0 Liquid templates** — **email templates**, the
+**New Universal Login page template**, and the tenant **custom error page**. Point it at a folder of `.liquid` files, open
 `http://localhost:9292/`, and you get a previewer: a collapsible sidebar grouped by kind, device and
 orientation toggles, a live variable editor, and a Prévia ↔ Liquid source switch.
 
@@ -48,9 +48,11 @@ Inside the directory you point `TEMPLATES_DIR` at (e.g. `/templates`):
 my_templates/
   welcome_email.liquid            # a template; its name is the basename ("welcome_email")
   universal_login.liquid          # the ULP page template
+  error_page.liquid               # the tenant custom error page
   _fixtures/
     welcome_email.json            # default render variables for welcome_email.liquid (optional)
     universal_login.json
+    error_page.json
 ```
 
 - Each top-level `*.liquid` file is a template. Files under `_fixtures/` and any non-`.liquid` file are ignored.
@@ -61,8 +63,11 @@ my_templates/
                "kind": "email", "group": "Onboarding", "subject": "Bem-vindo(a) à {{ application.name }}" },
     "user": { "email": "user@example.com" }, "application": { "name": "Acme" } }
   ```
-  - `group` sets the previewer sidebar section (e.g. `Onboarding` · `Acesso à conta` · `Segurança`; anything
-    else falls under `Outros`). `subject` is a Liquid string rendered for the email-client chrome.
+  - `group` sets the previewer sidebar section (e.g. `Onboarding` · `Acesso à conta` · `Segurança` · `Universal Login`
+    · `Páginas de erro`; anything else falls under `Outros`). `subject` is a Liquid string rendered for the email-client chrome.
+  - `kind` (`email` · `universal_login` · `error_page`) selects the previewer chrome. It is auto-derived
+    — ULP tokens → `universal_login`, a file named `error_page`/`error` → `error_page`, otherwise `email` —
+    so set it explicitly only to override that (e.g. an error page under a different filename).
 
 > **Full documents vs. fragments — what happens to *your* files:** a `.liquid` that is already a
 > complete HTML document (it starts with `<!doctype>` or `<html>`) is rendered **verbatim and
@@ -160,6 +165,41 @@ Or set it in `_fixtures/universal_login.json` (it's already present, empty, so i
 widget falls back to its monogram, so the default preview is unchanged. (Auth0's New Universal Login also resolves
 a `branding_theme.widget.logo_url`, but that is a Terraform/Management-API setting, **not** a page-template Liquid
 variable, so it can't be modeled here — use `branding.logo_url` to stand in for it.)
+
+## Custom error page
+
+Auth0 also lets a tenant replace its **custom error page** with a Liquid template (uploaded as
+`error_page.html` via the Management API tenant settings, or the Terraform `auth0_tenant.error_page.html`
+field). It is a standalone full HTML document — **not** an email (no theme) and **not** the Universal Login
+page (no `auth0:head` / `auth0:widget` tokens) — with its own variable contract. Auth0 supplies exactly
+these top-level variables, and the docs require request-derived ones to be escaped (XSS):
+
+| Variable | Meaning |
+|---|---|
+| `error` | the error **code** (a string, e.g. `access_denied`) |
+| `error_description` | human-readable description |
+| `tracking` | Auth0's internal-log tracking identifier |
+| `connection` | connection in use at the time of the error |
+| `client_id` | the Auth0 application identifier |
+| `lang` | language at the time of the error |
+
+(`show_log_link` / `url` are page **config**, not template Liquid variables, so they are not modeled.)
+
+The renderer ships brand-neutral, Auth0-shaped defaults for all six, so an error template renders a real
+scenario even without a fixture (instead of the blank "unknown error" fallback). The bundled
+`error_page.liquid` is a brand-neutral page that switches copy per code with `{% case error %}` and escapes
+every request-derived variable. It is recognized as its own `kind` (`error_page`) and previewed with browser
+chrome — a file named `error_page.liquid` (or `error.liquid`) is detected automatically; otherwise set
+`"kind": "error_page"` in its `_meta`.
+
+There are no presets baked in — switch scenarios live in the **Variáveis** editor, or per request:
+
+```bash
+# preview the "too many requests" scenario
+curl "http://localhost:9292/render/error_page?error=too_many_requests&_raw=1"
+```
+
+Reference: <https://auth0.com/docs/customize/login-pages/custom-error-pages>.
 
 ## Environment variables
 

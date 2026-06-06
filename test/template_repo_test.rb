@@ -83,6 +83,19 @@ class TemplateRepoTest < Minitest::Test
     end
   end
 
+  def test_entries_derive_error_page_kind_from_filename
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "error_page.liquid"), "<!doctype html><p>{{ error }}</p>")
+      File.write(File.join(dir, "error.liquid"), "<!doctype html><p>oops</p>")
+      File.write(File.join(dir, "welcome_email.liquid"), "<p>hi</p>")
+      entries = TemplateRepo.new(dir).entries
+
+      assert_equal "error_page", entries.find { |e| e[:name] == "error_page" }[:kind]
+      assert_equal "error_page", entries.find { |e| e[:name] == "error" }[:kind]
+      assert_equal "email", entries.find { |e| e[:name] == "welcome_email" }[:kind] # unaffected
+    end
+  end
+
   def test_meta_kind_overrides_token_detection
     Dir.mktmpdir do |dir|
       File.write(File.join(dir, "page.liquid"), "{%- auth0:widget -%}")

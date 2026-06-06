@@ -43,6 +43,17 @@ module DefaultContext
       "operating_system" => "macOS",
       "connection" => "Username-Password-Authentication",
       "connection_id" => "con_acme",
+      # Tenant custom error page (error_page.html) surface. Auth0 supplies exactly these
+      # top-level variables to that template: client_id, connection (above), lang, error
+      # (an OAuth error CODE string), error_description, tracking (an internal-log id).
+      # `show_log_link`/`url` are page CONFIG, not template context, so they are not here.
+      # Defaulted to a representative scenario so an error template renders something even
+      # without a fixture; brand-neutral. See https://auth0.com/docs/customize/login-pages/custom-error-pages
+      "client_id" => "acme-client-id",
+      "lang" => "en",
+      "error" => "access_denied",
+      "error_description" => "You do not have permission to access this application.",
+      "tracking" => "acme-tracking-id",
       "inviter" => { "name" => "Acme Admin" },
       # organization.branding.logo_url, when set, overrides tenant branding for the
       # widget logo (org-context login). Empty by default; brand-neutral.

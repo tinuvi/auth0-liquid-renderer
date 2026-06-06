@@ -72,8 +72,17 @@ class TemplateRepo
     File.join(@dir, "#{File.basename(name)}.liquid")
   end
 
+  # ULP tokens win; then the error-page surface is detected by filename (it carries no
+  # distinguishing token). An explicit `_meta.kind` always overrides this (see #entries).
   def derive_kind(name)
-    Auth0Ulp.tokens?(source(name)) ? "universal_login" : "email"
+    return "universal_login" if Auth0Ulp.tokens?(source(name))
+    return "error_page" if error_page_name?(File.basename(name))
+
+    "email"
+  end
+
+  def error_page_name?(base)
+    %w[error_page error].include?(base)
   end
 
   def humanize(name)
